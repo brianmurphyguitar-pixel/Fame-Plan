@@ -1,0 +1,81 @@
+rules_version = '2';
+
+// Fame Plan Firestore security rules (moderation-related parts).
+// Moderation fields, standing, queue, reports and logs are written only by Cloud Functions
+// (the Admin SDK bypasses these rules). Clients can read what they need and nothing else.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isModerator() { return signedIn() && request.auth.token.moderator == true; }
+    function band(bandId) { return get(/databases/$(database)/documents/bands/$(bandId)).data; }
+    function role(bandId) { return band(bandId).members[request.auth.uid]; }
+    function isMember(bandId) { return signedIn() && (request.auth.uid in band(bandId).members); }
+    // Fill-ins and guests can read their band's feed only if admins allow it; they never post.
+    function canPostIn(bandId) { return isMember(bandId) && role(bandId) in ['admin', 'member']; }
+
+    function standingPath() { return /databases/$(database)/documents/standing/$(request.auth.uid); }
+    function goodStanding() {
+      return !exists(standingPath()) || (
+        get(standingPath()).data.status in ['active', 'review'] &&
+        get(standingPath()).data.pausedUntil < request.time.toMillis()
+      );
+    }
+
+    // Shape of a new post or comment from a client: no moderation fields allowed.
+    function cleanNewContent() {
+      return request.resource.data.authorId == request.auth.uid
+        && request.resource.data.text is string
+        && request.resource.data.text.size() <= 5000
+        && !('moderation' in request.resource.data)
+        && !('goodFun' in request.resource.data);
+    }
+    // Authors may edit only their text (moderation is re-run by a function).
+    function textOnlyEdit() {
+      return resource.data.authorId == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'editedAt']);
+    }
+    // Removed content is hidden from everyone but moderators.
+    function visible() { return !('moderation' in resource.data) || resource.data.moderation.status != 'removed'; }
+
+    match /bands/{bandId}/posts/{postId} {
+      allow read: if (isMember(bandId) && visible()) || isModerator();
+      allow create: if canPostIn(bandId) && goodStanding() && cleanNewContent();
+      allow update: if canPostIn(bandId) && goodStanding() && textOnlyEdit();
+      allow delete: if signedIn() && (resource.data.authorId == request.auth.uid || role(bandId) == 'admin');
+
+      match /comments/{commentId} {
+        allow read: if (isMember(bandId) && visible()) || isModerator();
+        allow create: if canPostIn(bandId) && goodStanding() && cleanNewContent();
+        allow update: if canPostIn(bandId) && goodStanding() && textOnlyEdit();
+        allow delete: if signedIn() && (resource.data.authorId == request.auth.uid || role(bandId) == 'admin');
+      }
+    }
+
+    // Your own warnings and pause status, so the app can show "paused until…".
+    match /standing/{uid} {
+      allow read: if signedIn() && (request.auth.uid == uid || isModerator());
+      allow write: if false;
+    }
+    match /filterPrefs/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+    match /hidden/{uid} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow write: if false;
+    }
+    match /notifications/{uid}/items/{id} {
+      allow read: if signedIn() && request.auth.uid == uid;
+      allow update: if signedIn() && request.auth.uid == uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+    }
+
+    // Moderator-only data.
+    match /modQueue/{id} { allow read: if isModerator(); allow write: if false; }
+    match /reports/{id}  { allow read: if isModerator(); allow write: if false; }
+    match /appeals/{id}  { allow read: if isModerator() || (signedIn() && resource.data.uid == request.auth.uid); allow write: if false; }
+    match /modLog/{id}   { allow read: if isModerator(); allow write: if false; }
+  }
+}

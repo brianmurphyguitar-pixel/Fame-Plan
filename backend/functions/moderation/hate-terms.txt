@@ -1,0 +1,11 @@
+# Fame Plan hate-term list
+#
+# One slur or coded hate term per line, lowercase. Lines starting with # are ignored.
+# Matching is whole-word and handles leetspeak, symbols, spacing and stretched letters,
+# so you only need the base spelling.
+#
+# This file ships empty on purpose. OpenAI's moderation model already catches slurs
+# and hateful language in about 40 languages; this list is your own override for terms
+# it misses, new coded terms, or anything your moderators decide to always flag.
+#
+# How to fill it: see backend/README.md, section "Maintaining the hate-term list".

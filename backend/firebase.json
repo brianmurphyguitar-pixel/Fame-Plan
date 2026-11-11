@@ -1,0 +1,24 @@
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "runtime": "nodejs22",
+      "ignore": ["node_modules", "test", ".git"]
+    }
+  ],
+  "hosting": {
+    "public": "console",
+    "ignore": ["firebase.json", "**/.*"],
+    "headers": [
+      { "source": "**", "headers": [
+        { "key": "X-Frame-Options", "value": "DENY" },
+        { "key": "X-Robots-Tag", "value": "noindex" }
+      ] }
+    ]
+  }
+}
