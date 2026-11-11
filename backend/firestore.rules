@@ -12,7 +12,8 @@ service cloud.firestore {
     function band(bandId) { return get(/databases/$(database)/documents/bands/$(bandId)).data; }
     function role(bandId) { return band(bandId).members[request.auth.uid]; }
     function isMember(bandId) { return signedIn() && (request.auth.uid in band(bandId).members); }
-    // Fill-ins and guests can read their band's feed only if admins allow it; they never post.
+    // Every member (fill-ins and guests included) can read the band feed and like posts.
+    // Only admins and members can post or comment.
     function canPostIn(bandId) { return isMember(bandId) && role(bandId) in ['admin', 'member']; }
 
     function standingPath() { return /databases/$(database)/documents/standing/$(request.auth.uid); }
@@ -44,6 +45,13 @@ service cloud.firestore {
       allow create: if canPostIn(bandId) && goodStanding() && cleanNewContent();
       allow update: if canPostIn(bandId) && goodStanding() && textOnlyEdit();
       allow delete: if signedIn() && (resource.data.authorId == request.auth.uid || role(bandId) == 'admin');
+
+      // One like per person: bands/{bandId}/posts/{postId}/likes/{uid}
+      match /likes/{uid} {
+        allow read: if isMember(bandId);
+        allow create: if isMember(bandId) && request.auth.uid == uid && request.resource.data.keys().hasOnly(['at']);
+        allow delete: if signedIn() && request.auth.uid == uid;
+      }
 
       match /comments/{commentId} {
         allow read: if (isMember(bandId) && visible()) || isModerator();
