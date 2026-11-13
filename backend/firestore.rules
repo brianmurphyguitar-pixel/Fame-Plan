@@ -8,7 +8,8 @@ service cloud.firestore {
   match /databases/{database}/documents {
 
     function signedIn() { return request.auth != null; }
-    function isModerator() { return signedIn() && request.auth.token.moderator == true; }
+    function isAdmin() { return signedIn() && request.auth.token.admin == true; }
+    function isModerator() { return signedIn() && (request.auth.token.moderator == true || isAdmin()); }
     function band(bandId) { return get(/databases/$(database)/documents/bands/$(bandId)).data; }
     function role(bandId) { return band(bandId).members[request.auth.uid]; }
     function isMember(bandId) { return signedIn() && (request.auth.uid in band(bandId).members); }
@@ -85,5 +86,22 @@ service cloud.firestore {
     match /reports/{id}  { allow read: if isModerator(); allow write: if false; }
     match /appeals/{id}  { allow read: if isModerator() || (signedIn() && resource.data.uid == request.auth.uid); allow write: if false; }
     match /modLog/{id}   { allow read: if isModerator(); allow write: if false; }
+
+    // Admin console. Everything here is written only by Cloud Functions.
+    // config/app is read by every app (feature switches, minimum version, maintenance mode).
+    match /config/{id}        { allow read: if true; allow write: if false; }
+    match /announcements/{id} { allow read: if signedIn(); allow write: if false; }
+    match /users/{uid}        { allow read: if signedIn() && (request.auth.uid == uid || isAdmin());
+                                allow create: if signedIn() && request.auth.uid == uid && !('isModerator' in request.resource.data) && !('plan' in request.resource.data);
+                                allow update: if signedIn() && request.auth.uid == uid
+                                  && !request.resource.data.diff(resource.data).affectedKeys().hasAny(['isModerator', 'plan', 'joined']); }
+    match /venueClaims/{id}   { allow read: if isAdmin() || (signedIn() && resource.data.byUid == request.auth.uid);
+                                allow create: if signedIn() && request.resource.data.byUid == request.auth.uid && request.resource.data.status == 'pending';
+                                allow update, delete: if false; }
+    match /metrics/{id}       { allow read: if isAdmin(); allow write: if false; }
+    match /metricsDaily/{id}  { allow read: if isAdmin(); allow write: if false; }
+    match /payoutReviews/{id} { allow read: if isAdmin(); allow write: if false; }
+    match /disputes/{id}      { allow read: if isAdmin(); allow write: if false; }
+    match /adminLog/{id}      { allow read: if isAdmin(); allow write: if false; }
   }
 }

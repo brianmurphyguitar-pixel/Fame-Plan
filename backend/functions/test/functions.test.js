@@ -38,11 +38,33 @@ function docRef(path) {
   };
   return ref;
 }
-function collRef(path) {
+const getField = (o, k) => k.split('.').reduce((v, p) => (v == null ? undefined : v[p]), o);
+const OPS = { '==': (a, b) => a === b, '>=': (a, b) => a >= b, '<=': (a, b) => a <= b, in: (a, b) => b.includes(a) };
+function query(path, steps) {
+  const run = () => {
+    let docs = [...store.entries()].filter(([k]) => k.startsWith(path + '/') && !k.slice(path.length + 1).includes('/'))
+      .map(([k, v]) => ({ id: k.split('/').pop(), ref: docRef(k), data: () => clone(v) }));
+    for (const s of steps) {
+      if (s[0] === 'where') docs = docs.filter((d) => OPS[s[2]](getField(d.data(), s[1]), s[3]));
+      if (s[0] === 'orderBy') docs.sort((a, b) => (getField(a.data(), s[1]) > getField(b.data(), s[1]) ? 1 : -1) * (s[2] === 'desc' ? -1 : 1));
+      if (s[0] === 'limit') docs = docs.slice(0, s[1]);
+    }
+    return docs;
+  };
   return {
+    where: (...a) => query(path, steps.concat([['where', ...a]])),
+    orderBy: (...a) => query(path, steps.concat([['orderBy', ...a]])),
+    limit: (n) => query(path, steps.concat([['limit', n]])),
+    select: () => query(path, steps),
+    count: () => ({ get: async () => ({ data: () => ({ count: run().length }) }) }),
+    async get() { return { docs: run() }; }
+  };
+}
+function collRef(path) {
+  return Object.assign(query(path, []), {
     doc: (id) => docRef(path + '/' + id),
     async add(data) { const id = 'auto' + (++autoId); await docRef(path + '/' + id).set(data); return { id }; }
-  };
+  });
 }
 const db = {
   doc: docRef,
@@ -53,10 +75,16 @@ const db = {
   }
 };
 const authCalls = [];
+const claimsStore = {};
 const fakeAdmin = {
   initializeApp() {},
   firestore: Object.assign(() => db, { FieldValue: { increment: (n) => ({ [INC]: n }), arrayUnion: (...a) => ({ [UNION]: a }) } }),
-  auth: () => ({ updateUser: async (uid, p) => authCalls.push(['update', uid, p]), revokeRefreshTokens: async (uid) => authCalls.push(['revoke', uid]) })
+  auth: () => ({
+    updateUser: async (uid, p) => authCalls.push(['update', uid, p]),
+    revokeRefreshTokens: async (uid) => authCalls.push(['revoke', uid]),
+    getUser: async (uid) => ({ uid, customClaims: claimsStore[uid] || {} }),
+    setCustomUserClaims: async (uid, c) => { claimsStore[uid] = c; authCalls.push(['claims', uid, c]); }
+  })
 };
 class HttpsError extends Error { constructor(code, msg) { super(msg); this.code = code; } }
 const stubs = {
@@ -160,4 +188,117 @@ test('appeals land in the queue', async () => {
   await seed();
   const r = await call(fn.submitAppeal, 'sam', { message: 'It was an inside joke with my drummer.' });
   assert.strictEqual(store.get('modQueue/appeal__' + r.id).type, 'appeal');
+});
+
+// ================================================================ admin console
+const ADMIN = { admin: true, email: 'brian@example.com' }, MOD = { moderator: true, email: 'mod@example.com' };
+async function seedPeople() {
+  await seed();
+  const now = Date.now();
+  await db.doc('users/sam').set({ name: 'Sam', email: 'sam@x.com', kind: 'musician', bands: ['b1'], plan: 'free', lastActive: now, joined: now - 5e9 });
+  await db.doc('users/kara').set({ name: 'Kara', email: 'kara@x.com', kind: 'venue', bands: [], lastActive: now - 1e6, joined: now });
+  await db.doc('standing/sam').set({ status: 'active', warnings: 2, strikes: [], pauses: [] });
+}
+
+test('adminListUsers: staff only, emails for admins only', async () => {
+  await seedPeople();
+  await assert.rejects(call(fn.adminListUsers, 'jo', {}), /Staff only/);
+  const asMod = await call(fn.adminListUsers, 'm', {}, MOD);
+  assert.strictEqual(asMod.users[0].uid, 'sam');
+  assert.strictEqual(asMod.users[0].email, '');
+  assert.strictEqual(asMod.users[0].warnings, 2);
+  const asAdmin = await call(fn.adminListUsers, 'a', {}, ADMIN);
+  assert.strictEqual(asAdmin.users[0].email, 'sam@x.com');
+  assert.strictEqual(asAdmin.users[1].plan, 'Venue');
+});
+
+test('adminAction: moderators can suspend, only admins can terminate or grant Pro', async () => {
+  await seedPeople();
+  await assert.rejects(call(fn.adminAction, 'm', { kind: 'user', id: 'sam', action: 'suspend_7d' }, MOD), /note/);
+  await call(fn.adminAction, 'm', { kind: 'user', id: 'sam', action: 'suspend_7d', note: 'harassing DMs' }, MOD);
+  assert.strictEqual(store.get('standing/sam').status, 'suspended');
+  assert.ok(store.get('standing/sam').suspendedUntil > Date.now());
+  assert.deepStrictEqual(authCalls.pop(), ['revoke', 'sam']);
+  await assert.rejects(call(fn.adminAction, 'm', { kind: 'user', id: 'sam', action: 'terminate', note: 'x' }, MOD), /Admins only/);
+  await assert.rejects(call(fn.adminAction, 'm', { kind: 'user', id: 'sam', action: 'grant_pro', note: 'x' }, MOD), /Admins only/);
+  await call(fn.adminAction, 'a', { kind: 'user', id: 'sam', action: 'grant_pro', note: 'early supporter' }, ADMIN);
+  assert.strictEqual(store.get('bands/b1').plan.tier, 'pro');
+  assert.strictEqual(store.get('bands/b1').plan.comp, true);
+  const log = [...store.entries()].filter(([k]) => k.startsWith('adminLog/')).map(([, v]) => v);
+  assert.strictEqual(log.length, 2);
+  assert.strictEqual(log[1].note, 'early supporter');
+});
+
+test('adminAction: warn adds a strike, restore re-enables, no self-termination', async () => {
+  await seedPeople();
+  await call(fn.adminAction, 'm', { kind: 'user', id: 'sam', action: 'warn' }, MOD);
+  // Third warning: posting paused and the count starts over.
+  assert.ok(store.get('standing/sam').pausedUntil > Date.now());
+  assert.strictEqual(store.get('standing/sam').warnings, 0);
+  await call(fn.adminAction, 'a', { kind: 'user', id: 'sam', action: 'restore' }, ADMIN);
+  assert.ok(authCalls.some((c) => c[0] === 'update' && c[2].disabled === false));
+  await db.doc('users/a').set({ name: 'Admin' });
+  await assert.rejects(call(fn.adminAction, 'a', { kind: 'user', id: 'a', action: 'terminate', note: 'oops' }, ADMIN), /own account/);
+});
+
+test('adminAction: make moderator sets the claim', async () => {
+  await seedPeople();
+  await call(fn.adminAction, 'a', { kind: 'user', id: 'kara', action: 'make_moderator', note: 'trusted booker' }, ADMIN);
+  assert.deepStrictEqual(claimsStore.kara, { moderator: true });
+  await call(fn.adminAction, 'a', { kind: 'user', id: 'kara', action: 'remove_moderator' }, ADMIN);
+  assert.deepStrictEqual(claimsStore.kara, {});
+});
+
+test('venue verification marks the venue and only once', async () => {
+  await seedPeople();
+  await db.doc('venueClaims/c1').set({ name: 'The Rusty Nail', venueId: 'rusty', byUid: 'kara', status: 'pending' });
+  await call(fn.adminAction, 'a', { kind: 'venue', id: 'c1', action: 'verify', note: 'called them' }, ADMIN);
+  assert.strictEqual(store.get('venues/rusty').verified, true);
+  await assert.rejects(call(fn.adminAction, 'a', { kind: 'venue', id: 'c1', action: 'reject', note: 'x' }, ADMIN), /Already decided/);
+});
+
+test('payout release and dispute resolve', async () => {
+  await seedPeople();
+  await db.doc('payoutReviews/p1').set({ band: 'Velvet Static', amount: 2400, status: 'review', notify: ['sam'] });
+  await call(fn.adminAction, 'a', { kind: 'payout', id: 'p1', action: 'release', note: 'checked contract' }, ADMIN);
+  assert.strictEqual(store.get('payoutReviews/p1').status, 'paid');
+  await db.doc('disputes/d1').set({ parties: 'A ↔ B', status: 'open' });
+  await call(fn.adminAction, 'a', { kind: 'dispute', id: 'd1', action: 'split', note: 'both counts plausible' }, ADMIN);
+  assert.strictEqual(store.get('disputes/d1').outcome, 'split');
+});
+
+test('adminSetConfig validates, stores booleans and logs risky changes', async () => {
+  await seedPeople();
+  const cfg = { flags: { maintenance: [true, 'Maintenance mode', '...'], feedFilter: [true] }, moderation: { warningsBeforePause: 3, pauseHours: 24, pausesBeforeReview: 3, reportsToAutoHide: 3, hateThreshold: 0.5, threatThreshold: 0.55 }, minVersion: '1.2.0' };
+  await assert.rejects(call(fn.adminSetConfig, 'm', { config: cfg, note: 'x' }, MOD), /Admins only/);
+  await assert.rejects(call(fn.adminSetConfig, 'a', { config: Object.assign({}, cfg, { minVersion: 'new' }), note: 'x' }, ADMIN), /minVersion/);
+  const r = await call(fn.adminSetConfig, 'a', { config: cfg, note: 'db upgrade' }, ADMIN);
+  assert.deepStrictEqual(r.risky, ['maintenance on']);
+  assert.strictEqual(store.get('config/app').flags.maintenance, true);
+  assert.strictEqual(store.get('config/app').flags.adsFree, true);
+});
+
+test('adminBroadcast reaches the right audience', async () => {
+  await seedPeople();
+  const r = await call(fn.adminBroadcast, 'a', { audience: 'venues', title: 'Hi venues', body: 'Show files are live.' }, ADMIN);
+  assert.strictEqual(r.sent, 1);
+  assert.ok([...store.keys()].some((k) => k.startsWith('notifications/kara/items/')));
+  await assert.rejects(call(fn.adminBroadcast, 'a', { audience: 'all', title: 'x', body: 'y' }, ADMIN), /audience/);
+});
+
+test('dailyMetrics builds the overview', async () => {
+  await seedPeople();
+  const now = Date.now();
+  await db.doc('pitches/p1').set({ createdAt: now, status: 'booked', lineupConfirmed: true, played: false });
+  await db.doc('pitches/p2').set({ createdAt: now, status: 'new' });
+  await db.doc('bands/b1').set({ members: {}, plan: { tier: 'pro' } });
+  await db.doc('metrics/adRevenue').set({ last30: 214 });
+  await fn.dailyMetrics();
+  const ov = await call(fn.adminOverview, 'a', {}, ADMIN);
+  assert.strictEqual(ov.kpis.users, 2);
+  assert.strictEqual(ov.kpis.pro, 1);
+  assert.strictEqual(ov.kpis.ads30, 214);
+  assert.deepStrictEqual(ov.funnel.slice(0, 3).map((f) => f[1]), [2, 1, 1]);
+  assert.strictEqual(ov.dau.length, 1);
+  assert.strictEqual(ov.revenue.length, 1);
 });

@@ -1,6 +1,7 @@
-# Fame Plan backend: content moderation
+# Fame Plan backend: moderation and admin console
 
-This folder is the real, server-side version of the feed filter that the prototype only simulates.
+This folder is the real, server-side version of the feed filter that the prototype only simulates,
+plus the staff web app for running Fame Plan (control, insight and moderation).
 It runs on **Firebase** (Google Cloud), so it lives in the same Google Cloud account you're opening
 under the LLC.
 
@@ -47,9 +48,10 @@ backend/
       hate-terms.txt         your own term list (ships empty, see below)
       classify.js            rules + OpenAI, mapped to Fame Plan categories
       policy.js              all decisions: warnings, pauses, good fun, reports, actions
+    admin/admin.js           admin rules: who can do what, settings checks, announcements, metrics
     scripts/make-moderator.js
-    test/                    21 tests, run with: npm test
-  console/                   moderator web console (hosted on Firebase Hosting)
+    test/                    37 tests, run with: npm test
+  console/                   admin web app (hosted on Firebase Hosting)
 ```
 
 ## Setup (one time, about an hour)
@@ -80,14 +82,44 @@ You'll need: the Google Cloud account under the LLC, a card on it, and a compute
    ```
    firebase deploy --only functions,firestore:rules,firestore:indexes,hosting
    ```
-7. **Moderator console:** in Firebase console → Project settings → **Add app → Web**, copy the
+7. **Admin console:** in Firebase console → Project settings → **Add app → Web**, copy the
    config into `console/config.js`, and deploy hosting again. The console URL is
    `https://<project-id>.web.app`. Open it with `?demo=1` any time to see sample data.
-8. **Make yourself a moderator:**
+8. **Make yourself an admin** (once; after that, make moderators from the console's People page):
    ```
    gcloud auth application-default login
-   cd backend/functions && node scripts/make-moderator.js you@yourdomain.com
+   cd backend/functions && node scripts/make-moderator.js you@yourdomain.com --admin
    ```
+
+## The admin console
+
+Open `https://<project-id>.web.app` and sign in with Google. Add `?demo=1` for sample data, and
+`?demo=1&role=moderator` to see what a moderator sees.
+
+| Section | Who | What it's for |
+|---|---|---|
+| Overview | Admin | Users, daily actives, bands, venues, Pro and ad revenue, booking funnel, top cities, sign-ups. Built nightly by `dailyMetrics`. |
+| Moderation | Moderator + admin | Flagged posts, reports, repeat offenders, appeals. Content is blurred until you choose to look. |
+| People | Moderator + admin | Find anyone. Warn, clear warnings, suspend 7 days, restore. Admins also: end membership, give Pro free, make moderator. Moderators don't see email addresses. |
+| Venues | Admin | Verify venue claims before bands see them as trusted. |
+| Money | Admin | Payouts held for review (over $2,000, first payout, bank details just changed) and disputes. Money itself stays in Square/PayPal. |
+| App control | Admin | Feature switches (sign-ups, ads, lineup tagging, show files, Spotify import, feed filter, maintenance mode), safety settings, minimum app version, announcements. |
+| Audit log | Admin | Every staff action, who did it and the note they wrote. Can't be edited. |
+
+Serious actions (suspend, end membership, give Pro, verify, payouts, disputes, settings, announcements)
+require a note, which goes in the audit log.
+
+**Safety settings** in App control are read by the moderation functions within a minute, so the
+numbers there override `policy.js` → `CONFIG`. Keep them in line with the Terms of Service.
+
+**Ad revenue** isn't in Firestore. Put the last-30-day AdMob figure in `metrics/adRevenue`
+(`{ last30: 214 }`) by hand or from an AdMob export, and the nightly job picks it up.
+
+**What the app needs to write** for the console to fill in: `users/{uid}` (name, email, kind,
+roleLabel, org, city, bands, joined, lastActive), `pitches/{id}` (createdAt, status, lineupConfirmed,
+played, venueCity), `venueClaims/{id}` (name, city, cap, by, byUid, email, evidence, submitted,
+status: 'pending'), `payouts/{id}` (amount, paidAt). Payout holds go in `payoutReviews`, disputes
+in `disputes`; the payments integration creates those.
 
 ## Maintaining the hate-term list
 
@@ -111,7 +143,8 @@ The prototype already shows the screens. When the real app is built, it:
   the viewer's `filterPrefs/{uid}`. Same logic, so app and server agree.
 - shows "paused until…" from `standing/{uid}.pausedUntil`.
 - calls `answerGoodFun`, `reportContent` and `submitAppeal` (Firebase callable functions).
-- shows `notifications/{uid}/items`.
+- shows `notifications/{uid}/items` and the latest `announcements`.
+- reads `config/app` at launch: feature switches, `minVersion` (ask to update) and maintenance mode.
 
 ## Legal and policy notes (not legal advice)
 

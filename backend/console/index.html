@@ -4,140 +4,258 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Fame Plan · Moderation</title>
+<title>Fame Plan Admin</title>
 <style>
-:root { --bg:#130F1C; --card:#1E182C; --line:#2E2642; --line2:#3D3354; --ink:#F1ECFA; --ink2:#D3CCE3; --mute:#ADA3C2; --accent:#C69BFF; --warn:#F2B880; --warnbg:#2E2216; --warnline:#6A4A28; --ok:#B5E3B0; --okbg:#1F2E22; --okline:#3E5A3B; --bad:#FF8A8A; }
+:root { --bg:#130F1C; --card:#1E182C; --card2:#241D33; --line:#2E2642; --line2:#3D3354; --ink:#F1ECFA; --ink2:#D3CCE3; --mute:#ADA3C2; --faint:#9187A8; --accent:#C69BFF; --warn:#F2B880; --warnbg:#2E2216; --warnline:#6A4A28; --ok:#B5E3B0; --okbg:#1F2E22; --okline:#3E5A3B; --bad:#FFB3BD; --badbg:#3A1520; --badline:#7A2A38; --info:#8EC5FC; --s1:#9B6BE0; --s2:#1F9E8F; }
 * { box-sizing: border-box; }
 [hidden] { display: none !important; }
-body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 Inter, system-ui, -apple-system, sans-serif; }
-button, select, textarea { font: inherit; }
+html, body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.45 Inter, system-ui, -apple-system, "Segoe UI", sans-serif; }
+button, select, textarea, input { font: inherit; color: inherit; }
 button { cursor: pointer; }
 :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
-header { display: flex; align-items: center; gap: 12px; padding: 14px 20px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--bg); z-index: 2; }
-header h1 { margin: 0; font-size: 18px; font-weight: 700; flex: 1; }
-.pill { font-size: 12px; font-weight: 600; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line2); color: var(--ink2); white-space: nowrap; }
-.layout { display: grid; grid-template-columns: minmax(280px, 380px) 1fr; min-height: calc(100vh - 57px); }
-@media (max-width: 760px) { .layout { grid-template-columns: minmax(0, 1fr); } #detail { padding: 14px; } #detail { border-top: 1px solid var(--line); } }
-#list { border-right: 1px solid var(--line); display: flex; flex-direction: column; min-width: 0; }
-.filters { display: flex; gap: 8px; padding: 12px; border-bottom: 1px solid var(--line); flex-wrap: wrap; }
-.filters select { background: var(--card); color: var(--ink); border: 1px solid var(--line2); border-radius: 10px; min-height: 40px; padding: 0 10px; }
-.items { list-style: none; margin: 0; padding: 0; overflow-y: auto; }
-.item { display: block; width: 100%; text-align: left; background: transparent; color: inherit; border: 0; border-bottom: 1px solid var(--line); padding: 12px 14px; }
-.item[aria-current="true"] { background: #261C3A; }
-.item .top { display: flex; gap: 8px; align-items: center; margin-bottom: 4px; }
-.item .what { font-weight: 600; flex: 1; }
-.item .snip { color: var(--mute); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; filter: blur(4px); }
-.pri-urgent { background: #4A1620; color: #FFB3BD; border-color: #7A2A38; }
-.pri-high { background: var(--warnbg); color: var(--warn); border-color: var(--warnline); }
-.pri-normal { color: var(--mute); }
-#detail { padding: 20px; display: flex; flex-direction: column; gap: 16px; max-width: 760px; min-width: 0; }
-.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px; }
-.content { font-size: 16px; white-space: pre-wrap; word-break: break-word; }
-.content.blur { filter: blur(7px); user-select: none; }
+a { color: var(--accent); }
+.skip { position: absolute; left: -999px; top: 8px; background: var(--accent); color: #130F1C; padding: 8px 12px; border-radius: 8px; z-index: 10; }
+.skip:focus { left: 8px; }
+header.top { display: flex; align-items: center; gap: 10px; padding: 12px 20px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--bg); z-index: 5; }
+header.top .brand { font-weight: 800; font-size: 17px; letter-spacing: -0.01em; }
+header.top .brand span { color: var(--accent); }
+.grow { flex: 1; }
+.pill { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 700; padding: 3px 10px; border-radius: 999px; border: 1px solid var(--line2); color: var(--ink2); white-space: nowrap; }
+.pill.ok { background: var(--okbg); color: var(--ok); border-color: var(--okline); }
+.pill.warn { background: var(--warnbg); color: var(--warn); border-color: var(--warnline); }
+.pill.bad { background: var(--badbg); color: var(--bad); border-color: var(--badline); }
+.pill.accent { background: #261C3A; color: var(--accent); border-color: #5A3F8A; }
+.muted { color: var(--mute); }
+.small { font-size: 13px; }
+.tiny { font-size: 12px; }
+.shell { display: grid; grid-template-columns: 220px minmax(0, 1fr); min-height: calc(100vh - 57px); }
+nav.side { border-right: 1px solid var(--line); padding: 12px; display: flex; flex-direction: column; gap: 4px; position: sticky; top: 57px; height: calc(100vh - 57px); overflow-y: auto; }
+nav.side button { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 44px; padding: 0 12px; border-radius: 10px; border: 0; background: transparent; color: var(--ink2); text-align: left; font-weight: 600; }
+nav.side button:hover { background: var(--card); }
+nav.side button[aria-current="page"] { background: #261C3A; color: var(--ink); box-shadow: inset 3px 0 0 var(--accent); }
+nav.side .count { margin-left: auto; font-size: 12px; font-weight: 700; color: var(--warn); }
+nav.side .sep { height: 1px; background: var(--line); margin: 8px 4px; }
+main#view { padding: 24px; min-width: 0; display: flex; flex-direction: column; gap: 20px; max-width: 1280px; }
+h1.h { margin: 0; font-size: 26px; letter-spacing: -0.01em; }
+h2.h { margin: 0; font-size: 17px; }
+.sub { margin: 4px 0 0; color: var(--mute); font-size: 14px; }
 .row { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
-.stat { display: flex; flex-direction: column; gap: 2px; min-width: 110px; }
-.stat b { font-size: 18px; }
-.stat span { font-size: 12px; color: var(--mute); }
-.btn { min-height: 44px; padding: 0 16px; border-radius: 12px; border: 1px solid var(--line2); background: transparent; color: var(--ink); font-weight: 600; }
+.grid { display: grid; gap: 12px; }
+.kpis { grid-template-columns: repeat(auto-fill, minmax(170px, 1fr)); }
+.two { grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); }
+.card { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 10px; min-width: 0; }
+.kpi .v { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+.kpi .k { font-size: 13px; color: var(--mute); }
+.kpi .d { font-size: 12px; font-weight: 700; }
+.up { color: var(--ok); } .down { color: var(--warn); }
+.btn { min-height: 40px; padding: 0 14px; border-radius: 10px; border: 1px solid var(--line2); background: transparent; color: var(--ink); font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: 6px; }
+.btn:hover { background: var(--card2); }
 .btn.primary { background: var(--accent); border-color: var(--accent); color: #130F1C; }
 .btn.ok { background: var(--okbg); border-color: var(--okline); color: var(--ok); }
 .btn.warn { background: var(--warnbg); border-color: var(--warnline); color: var(--warn); }
-.btn.danger { background: #3A1520; border-color: #7A2A38; color: #FFB3BD; }
-textarea { width: 100%; min-height: 70px; background: var(--bg); color: var(--ink); border: 1px solid var(--line2); border-radius: 10px; padding: 10px; }
-.muted { color: var(--mute); font-size: 13px; }
-.banner { background: var(--warnbg); border: 1px solid var(--warnline); color: var(--warn); border-radius: 12px; padding: 10px 14px; font-size: 13px; }
-.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--okbg); border: 1px solid var(--okline); color: var(--ok); padding: 10px 16px; border-radius: 12px; }
-.empty { padding: 40px 20px; color: var(--mute); text-align: center; }
-dialog { background: var(--card); color: var(--ink); border: 1px solid var(--line2); border-radius: 16px; padding: 20px; max-width: 420px; }
-dialog::backdrop { background: rgba(10,8,16,.7); }
-#signin { display: grid; place-items: center; min-height: 80vh; }
+.btn.danger { background: var(--badbg); border-color: var(--badline); color: var(--bad); }
+.btn.sm { min-height: 34px; padding: 0 10px; font-size: 13px; }
+.btn[disabled] { opacity: .5; cursor: not-allowed; }
+input[type=text], input[type=search], input[type=number], select, textarea { background: var(--bg); border: 1px solid var(--line2); border-radius: 10px; min-height: 40px; padding: 0 10px; }
+textarea { padding: 10px; min-height: 80px; width: 100%; resize: vertical; }
+table { width: 100%; border-collapse: collapse; font-size: 14px; }
+th, td { text-align: left; padding: 10px 8px; border-bottom: 1px solid var(--line); vertical-align: top; }
+th { font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: var(--faint); font-weight: 700; }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+tr.click { cursor: pointer; }
+tr.click:hover td { background: var(--card2); }
+tr[aria-selected="true"] td { background: #261C3A; }
+.tablewrap { overflow-x: auto; }
+.split { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 380px); gap: 16px; align-items: start; }
+.blur { filter: blur(6px); user-select: none; }
+.content { white-space: pre-wrap; word-break: break-word; font-size: 15px; }
+.switch { width: 48px; height: 28px; border-radius: 14px; border: 0; padding: 3px; display: inline-flex; flex-shrink: 0; background: var(--line2); }
+.switch[aria-checked="true"] { background: var(--accent); justify-content: flex-end; }
+.switch span { width: 22px; height: 22px; border-radius: 11px; background: var(--ink); }
+.flag { display: flex; gap: 12px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.flag:last-child { border-bottom: 0; }
+.chart svg { display: block; width: 100%; height: auto; overflow: visible; }
+.chart .tip { position: absolute; pointer-events: none; background: #0B0812; border: 1px solid var(--line2); border-radius: 8px; padding: 6px 8px; font-size: 12px; white-space: nowrap; transform: translate(-50%, -110%); }
+.legend { display: flex; gap: 14px; font-size: 13px; color: var(--ink2); flex-wrap: wrap; }
+.legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; }
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--okbg); border: 1px solid var(--okline); color: var(--ok); padding: 10px 16px; border-radius: 12px; z-index: 20; max-width: 90vw; }
+.toast.warn { background: var(--warnbg); border-color: var(--warnline); color: var(--warn); }
+.banner { background: var(--warnbg); border: 1px solid var(--warnline); color: var(--warn); border-radius: 12px; padding: 10px 14px; font-size: 14px; }
+.empty { padding: 30px; color: var(--mute); text-align: center; }
+dialog { background: var(--card); color: var(--ink); border: 1px solid var(--line2); border-radius: 16px; padding: 20px; max-width: 440px; width: calc(100% - 32px); }
+dialog::backdrop { background: rgba(10,8,16,.72); }
+.kv { display: grid; grid-template-columns: 130px 1fr; gap: 6px 12px; font-size: 14px; }
+.kv dt { color: var(--mute); }
+.kv dd { margin: 0; min-width: 0; overflow-wrap: anywhere; }
+.bar { height: 8px; border-radius: 4px; background: var(--line); overflow: hidden; }
+.bar > i { display: block; height: 100%; background: var(--s1); border-radius: 4px; }
+.stack { display: flex; flex-direction: column; gap: 8px; }
+.mobnav { display: none; }
+@media (max-width: 900px) {
+  .shell { grid-template-columns: minmax(0, 1fr); }
+  nav.side { display: none; }
+  .mobnav { display: block; padding: 10px 16px 0; }
+  .mobnav select { width: 100%; }
+  main#view { padding: 16px; }
+  .split { grid-template-columns: minmax(0, 1fr); }
+  .two { grid-template-columns: minmax(0, 1fr); }
+  header.top .who { display: none; }
+  .kv { grid-template-columns: 110px minmax(0, 1fr); }
+}
+#signin { display: grid; place-items: center; min-height: 80vh; padding: 20px; }
 </style>
 </head>
 <body>
-<header>
-  <h1>Fame Plan · Moderation</h1>
+<a class="skip" href="#view">Skip to content</a>
+<header class="top">
+  <span class="brand">Fame Plan <span>Admin</span></span>
   <span id="mode" class="pill"></span>
-  <span id="who" class="muted"></span>
-  <button id="signout" class="btn" hidden>Sign out</button>
+  <span id="role" class="pill accent"></span>
+  <span class="grow"></span>
+  <span id="who" class="muted small who"></span>
+  <button id="signout" class="btn sm" hidden>Sign out</button>
 </header>
 
 <section id="signin" hidden>
-  <div class="card" style="max-width:380px">
-    <h2 style="margin:0">Moderators only</h2>
-    <p class="muted" style="margin:0">Sign in with the Google account that was given moderator access.</p>
+  <div class="card" style="max-width:400px">
+    <h1 class="h" style="font-size:20px">Staff only</h1>
+    <p class="muted" style="margin:0">Sign in with the Google account that has admin or moderator access.</p>
     <button id="google" class="btn primary">Sign in with Google</button>
-    <p id="signin-err" class="muted" role="alert"></p>
+    <p id="signin-err" class="muted small" role="alert"></p>
   </div>
 </section>
 
-<div class="layout" id="app" hidden>
-  <nav id="list" aria-label="Moderation queue">
-    <div class="filters">
-      <label class="muted">Show
-        <select id="f-status"><option value="open">Open</option><option value="resolved">Resolved</option></select>
-      </label>
-      <label class="muted">Type
-        <select id="f-cat">
-          <option value="">All</option><option value="minors">Minors</option><option value="hate">Prejudice</option>
-          <option value="threat">Threats</option><option value="reported">Reported</option><option value="account">Accounts</option><option value="appeal">Appeals</option>
-        </select>
-      </label>
-    </div>
-    <ul class="items" id="items"></ul>
-  </nav>
-  <main id="detail" aria-live="polite"><div class="empty">Pick an item from the queue.</div></main>
+<div id="app" hidden>
+  <div class="mobnav"><label class="small muted" for="mobsel">Section</label><select id="mobsel"></select></div>
+  <div class="shell">
+    <nav class="side" id="side" aria-label="Admin sections"></nav>
+    <main id="view" tabindex="-1"></main>
+  </div>
 </div>
 
-<dialog id="confirm">
-  <h2 id="c-title" style="margin:0 0 8px;font-size:18px"></h2>
-  <p id="c-body" class="muted" style="margin:0 0 14px"></p>
-  <div class="row"><button class="btn" value="cancel" id="c-no">Cancel</button><button class="btn danger" id="c-yes">Confirm</button></div>
+<dialog id="confirm" aria-labelledby="c-title">
+  <h2 id="c-title" class="h" style="margin-bottom:8px"></h2>
+  <p id="c-body" class="muted" style="margin:0 0 12px"></p>
+  <label for="c-note" class="small" style="font-weight:600">Note for the audit log</label>
+  <textarea id="c-note" placeholder="Why (required)"></textarea>
+  <p id="c-err" class="small" role="alert" style="color:var(--warn);margin:6px 0 0"></p>
+  <div class="row" style="margin-top:12px;justify-content:flex-end"><button class="btn" id="c-no">Cancel</button><button class="btn danger" id="c-yes">Confirm</button></div>
 </dialog>
 
 <script src="config.js"></script>
 <script type="module">
-const $ = (s) => document.querySelector(s);
+const $ = (s, el = document) => el.querySelector(s);
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-const PRI = { urgent: 0, high: 1, normal: 2 };
-const CAT = { minors: 'Sexual content involving minors', hate: 'Racial or other prejudice', threat: 'Threat / self-harm aimed at someone', repeat: 'Repeat offender', appeal: 'Appeal' };
-const ACTIONS = [
-  ['dismiss', 'Dismiss: it’s fine', 'ok', 'Clears the blur and removes the warning.'],
-  ['remove', 'Remove content', 'warn', 'Keeps the warning that was already given.'],
-  ['remove_and_warn', 'Remove + extra warning', 'warn', 'Counts toward the 24-hour pause.'],
-  ['suspend_7d', 'Suspend 7 days', 'danger', 'Can’t sign in to post for a week.'],
-  ['terminate', 'End membership', 'danger', 'Disables the account. They can appeal within 30 days.'],
-  ['restore', 'Restore account', 'ok', 'Undo a suspension or termination (appeals).']
-];
+const money = (n) => '$' + Math.round(n).toLocaleString('en-US');
+const fmtN = (n) => Math.round(n).toLocaleString('en-US');
+const ago = (t) => { const m = Math.round((Date.now() - t) / 60000); return m < 60 ? m + 'm ago' : m < 1440 ? Math.round(m / 60) + 'h ago' : Math.round(m / 1440) + 'd ago'; };
+const H = 3600e3, D = 24 * H, NOW = Date.now();
 
-let items = [], sel = null, shown = {}, api = null;
-
-// ---------------- demo data
-const now = Date.now(), H = 3600e3;
-const DEMO = [
-  { id: 'd1', type: 'post', category: 'hate', label: CAT.hate, priority: 'high', status: 'open', text: 'all [group] are criminals, keep them out of our shows', source: 'rules', reports: 1, reasons: ['prejudice'], fun: 1, hurt: 1, authorId: 'u_ricky', bandId: 'Loose Teeth', updatedAt: now - 0.4 * H, standing: { warnings: 2, pauses: 0, status: 'active' } },
-  { id: 'd2', type: 'post', category: 'threat', label: CAT.threat, priority: 'normal', status: 'open', text: 'To whoever lifted my pedalboard: f*ck you, go die in a fire.', source: 'rules', reports: 0, reasons: [], fun: 0, hurt: 0, authorId: 'u_sam', bandId: 'The Late Shift', updatedAt: now - 1 * H, standing: { warnings: 1, pauses: 0, status: 'active' } },
-  { id: 'd3', type: 'comment', category: null, label: 'Reported by 3 people', priority: 'high', status: 'open', text: 'nobody in this scene wants you around, quit already', source: 'reports', reports: 3, reasons: ['harassment', 'harassment', 'other'], fun: 0, hurt: 2, authorId: 'u_kel', bandId: 'Glass Owls', updatedAt: now - 2 * H, standing: { warnings: 0, pauses: 0, status: 'active' } },
-  { id: 'd4', type: 'account', category: 'repeat', label: 'Paused 3 times in 90 days. Decide on membership.', priority: 'high', status: 'open', text: '', authorId: 'u_trev', bandId: '—', updatedAt: now - 5 * H, standing: { warnings: 0, pauses: 3, status: 'review' } },
-  { id: 'd5', type: 'appeal', category: 'appeal', label: 'Appeal', priority: 'normal', status: 'open', text: 'It was an inside joke with my drummer, we say it every rehearsal. Please look again.', authorId: 'u_sam', bandId: 'The Late Shift', updatedAt: now - 9 * H, standing: { warnings: 1, pauses: 0, status: 'active' } },
-  { id: 'd6', type: 'post', category: 'threat', label: CAT.threat, priority: 'normal', status: 'resolved', resolution: 'cleared_by_band', text: 'lol kys, that tempo', source: 'rules', reports: 0, fun: 2, hurt: 0, authorId: 'u_jo', bandId: 'The Late Shift', updatedAt: now - 30 * H, standing: { warnings: 0, pauses: 0, status: 'active' } }
-];
-
-function demoApi() {
+// ======================================================= DEMO DATA
+function seeded(seed) { let s = seed; return () => (s = (s * 16807) % 2147483647) / 2147483647; }
+function demoData() {
+  const r = seeded(42);
+  const dau = Array.from({ length: 30 }, (_, i) => { const day = new Date(NOW - (29 - i) * D); const wk = [0.82, 0.9, 0.95, 1, 1.08, 1.25, 1.18][day.getDay()]; return { date: day, v: Math.round((880 + i * 9) * wk + r() * 60) }; });
+  const months = ['Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov'];
+  const revenue = months.map((m, i) => ({ m, pro: [120, 180, 260, 340, 450, 579][i], ads: [40, 70, 110, 150, 190, 214][i] }));
+  const users = [
+    ['u_brian', 'Brian Murphy', 'brian@thelateshift.example', 'Band admin', 'The Late Shift', 'Portsmouth, NH', 'Pro', 'active', 0, 0, 220, 1],
+    ['u_maya', 'Maya Reyes', 'maya@example.com', 'Band admin', 'The Late Shift', 'Portsmouth, NH', 'Pro', 'active', 0, 0, 220, 2],
+    ['u_ricky', 'Ricky Dunn', 'rdunn@example.com', 'Musician', 'Loose Teeth', 'Salem, MA', 'Free', 'active', 2, 0, 140, 5],
+    ['u_sam', 'Sam Okafor', 'sam@example.com', 'Band member', 'The Late Shift', 'Portsmouth, NH', 'Pro', 'active', 1, 0, 210, 3],
+    ['u_trev', 'Trevor Hale', 'trev@example.com', 'Musician', '—', 'Nashua, NH', 'Free', 'review', 0, 3, 95, 30],
+    ['u_kara', 'Kara Lin', 'booking@anchorroom.example', 'Venue booker', 'The Anchor Room', 'Portsmouth, NH', 'Venue', 'active', 0, 0, 180, 1],
+    ['u_kim', 'Kim Alvarez', 'kim@riversidehall.example', 'Venue booker', 'Riverside Hall', 'Portland, ME', 'Venue', 'active', 0, 0, 300, 4],
+    ['u_kel', 'Kelsey Vaughn', 'kel@example.com', 'Musician', 'Glass Owls', 'Dover, NH', 'Free', 'active', 0, 0, 60, 8],
+    ['u_ray', 'Ray Kowalski', 'ray@example.com', 'Fill-in', 'The Late Shift', 'Kittery, ME', 'Free', 'active', 0, 0, 12, 20],
+    ['u_jo', 'Jo Park', 'jo@example.com', 'Band member', 'The Late Shift', 'Portsmouth, NH', 'Pro', 'active', 0, 0, 215, 6],
+    ['u_spam', 'Best Gig Deals', 'deals@spam.example', 'Venue booker', 'Gig Deals LLC', 'Unknown', 'Free', 'suspended', 3, 1, 4, 72],
+    ['u_lena', 'Lena Ford', 'lena@example.com', 'Musician', 'Velvet Static', 'Portland, ME', 'Pro', 'active', 0, 0, 330, 2]
+  ].map((u) => ({ uid: u[0], name: u[1], email: u[2], role: u[3], org: u[4], city: u[5], plan: u[6], status: u[7], warnings: u[8], pauses: u[9], joined: NOW - u[10] * D, lastActive: NOW - u[11] * H, moderator: u[0] === 'u_brian' }));
   return {
-    mode: 'Demo data',
-    listen(cb) { cb(DEMO); },
-    async act(id, action, note) {
-      const it = DEMO.find((x) => x.id === id);
-      Object.assign(it, { status: 'resolved', resolution: action, note });
-      if (action === 'terminate') it.standing.status = 'terminated';
-      if (action === 'suspend_7d') it.standing.status = 'suspended';
-      if (action === 'restore') it.standing.status = 'active';
-      return { ok: true };
-    }
+    kpis: { users: 4812, usersD: 9.1, dau: dau[29].v, mau: 3390, bands: 612, venues: 87, venuesPending: 4, pro: 58, mrr: 579, ads30: 214, pitches30: 342, bookings30: 96, payouts30: 41350, openMod: 5, modHours: 3.2 },
+    dau, revenue,
+    funnel: [['Pitches sent', 342], ['Venue replied', 251], ['Accepted', 118], ['Lineup confirmed', 96], ['Played', 71]],
+    signups: [['Musicians', 211], ['Bands', 64], ['Venues', 9], ['Fill-ins', 23]],
+    cities: [['Portsmouth, NH', 812, 41], ['Portland, ME', 655, 33], ['Boston, MA', 590, 12], ['Manchester, NH', 402, 18], ['Burlington, VT', 238, 9]],
+    queue: [
+      { id: 'd1', type: 'post', category: 'hate', label: 'Racial or other prejudice', priority: 'high', status: 'open', text: 'all [group] are criminals, keep them out of our shows', source: 'rules', reports: 1, reasons: ['prejudice'], fun: 1, hurt: 1, authorId: 'u_ricky', bandId: 'Loose Teeth', updatedAt: NOW - 0.4 * H },
+      { id: 'd2', type: 'post', category: 'threat', label: 'Threat / self-harm aimed at someone', priority: 'normal', status: 'open', text: 'To whoever lifted my pedalboard: f*ck you, go die in a fire.', source: 'rules', reports: 0, reasons: [], fun: 0, hurt: 0, authorId: 'u_sam', bandId: 'The Late Shift', updatedAt: NOW - 1 * H },
+      { id: 'd3', type: 'comment', category: null, label: 'Reported by 3 people', priority: 'high', status: 'open', text: 'nobody in this scene wants you around, quit already', source: 'reports', reports: 3, reasons: ['harassment', 'harassment', 'other'], fun: 0, hurt: 2, authorId: 'u_kel', bandId: 'Glass Owls', updatedAt: NOW - 2 * H },
+      { id: 'd4', type: 'account', category: 'repeat', label: 'Paused 3 times in 90 days. Decide on membership.', priority: 'high', status: 'open', text: '', authorId: 'u_trev', bandId: '—', updatedAt: NOW - 5 * H },
+      { id: 'd5', type: 'appeal', category: 'appeal', label: 'Appeal', priority: 'normal', status: 'open', text: 'It was an inside joke with my drummer, we say it every rehearsal. Please look again.', authorId: 'u_sam', bandId: 'The Late Shift', updatedAt: NOW - 9 * H },
+      { id: 'd6', type: 'post', category: 'threat', label: 'Threat / self-harm aimed at someone', priority: 'normal', status: 'resolved', resolution: 'cleared_by_band', text: 'lol kys, that tempo', source: 'rules', reports: 0, fun: 2, hurt: 0, authorId: 'u_jo', bandId: 'The Late Shift', updatedAt: NOW - 30 * H }
+    ],
+    users,
+    venues: [
+      { id: 'v1', name: 'The Rusty Nail', city: 'Concord, NH', cap: 180, by: 'Dana Pierce', email: 'dana@rustynail.example', evidence: ['Business email matches website', 'Liquor license on file'], submitted: NOW - 20 * H, status: 'pending' },
+      { id: 'v2', name: 'Sound Garden Brewery', city: 'Burlington, VT', cap: 250, by: 'Omar Ruiz', email: 'omar@gmail.example', evidence: ['Website link', 'Personal email (doesn’t match domain)'], submitted: NOW - 44 * H, status: 'pending', risk: 'Email domain doesn’t match the venue website' },
+      { id: 'v3', name: 'The Low Ceiling', city: 'Boston, MA', cap: 120, by: 'Priya Nair', email: 'booking@lowceiling.example', evidence: ['Business email matches website', 'Google Business listing'], submitted: NOW - 3 * D, status: 'pending' },
+      { id: 'v4', name: 'Gig Deals LLC', city: 'Unknown', cap: 0, by: 'Best Gig Deals', email: 'deals@spam.example', evidence: ['No website', 'New account (4 days)'], submitted: NOW - 4 * D, status: 'pending', risk: 'Account already suspended for spam' },
+      { id: 'v5', name: 'The Anchor Room', city: 'Portsmouth, NH', cap: 220, by: 'Kara Lin', email: 'booking@anchorroom.example', evidence: [], submitted: NOW - 180 * D, status: 'verified' },
+      { id: 'v6', name: 'Riverside Hall', city: 'Portland, ME', cap: 450, by: 'Kim Alvarez', email: 'kim@riversidehall.example', evidence: [], submitted: NOW - 300 * D, status: 'verified' }
+    ],
+    payouts: [
+      { id: 'po1', band: 'Velvet Static', venue: 'Riverside Hall', amount: 2400, date: NOW - 2 * D, status: 'review', reason: 'Over $2,000 · first payout for this band' },
+      { id: 'po2', band: 'The Late Shift', venue: 'The Anchor Room', amount: 1150, date: NOW - 1 * D, status: 'review', reason: 'Bank details changed 3 days ago' },
+      { id: 'po3', band: 'Glass Owls', venue: 'The Anchor Room', amount: 640, date: NOW - 4 * D, status: 'paid', reason: '' },
+      { id: 'po4', band: 'Northline', venue: 'The Blue Bay', amount: 310, date: NOW - 5 * D, status: 'paid', reason: '' }
+    ],
+    disputes: [
+      { id: 'ds1', title: 'Venue says door count was 60, band counted 95', parties: 'Static Pines ↔ The Blue Bay', amount: 280, opened: NOW - 1 * D, status: 'open' },
+      { id: 'ds2', title: 'Show cancelled 2 days before, band wants the guarantee', parties: 'Harbor Lights ↔ Sound Garden Brewery', amount: 300, opened: NOW - 3 * D, status: 'open' }
+    ],
+    bookings: [
+      ['Fri, Nov 20', 'The Anchor Room', 'The Late Shift +2', 'Guarantee + door', '2 of 3 agreed'],
+      ['Sat, Nov 21', 'Riverside Hall', 'The Late Shift', 'Guarantee + door', 'Confirmed'],
+      ['Sat, Nov 28', 'The Anchor Room', 'Glass Owls +2', 'Door split', 'Confirmed'],
+      ['Fri, Dec 11', 'The Anchor Room', 'Northline', 'Guarantee + door', 'On hold'],
+      ['Fri, Dec 18', 'The Anchor Room', 'Velvet Static +2', 'Ticket tiers', '3 of 3 agreed']
+    ],
+    config: {
+      flags: {
+        signupsOpen: [true, 'New sign-ups', 'Let new people create accounts.'],
+        adsFree: [true, 'Ads on the free plan', 'Sponsored cards in Feed, Discover and Home. Never in chat, money or agreements.'],
+        lineupTagging: [true, 'Lineup tagging', 'Bands can tag other bands in pitches to agree on terms.'],
+        showFiles: [true, 'Show files exchange', 'Band ↔ venue file sharing for each booking.'],
+        spotifyImport: [true, 'Spotify import', 'Import songs and album art into set lists.'],
+        feedFilter: [true, 'Feed safety filter', 'Blur threats and prejudice. Turning this off is not recommended.'],
+        maintenance: [false, 'Maintenance mode', 'Shows a banner and makes the app read-only. Use during upgrades.']
+      },
+      moderation: { warningsBeforePause: 3, pauseHours: 24, pausesBeforeReview: 3, reportsToAutoHide: 3, hateThreshold: 0.5, threatThreshold: 0.55 },
+      minVersion: '1.0.0'
+    },
+    audit: [
+      { at: NOW - 6 * H, by: 'brian@thelateshift.example', what: 'Account: suspend 7d', target: 'Best Gig Deals (u_spam)', note: 'Mass DMs offering fake gigs' },
+      { at: NOW - 30 * H, by: 'System', what: 'Cleared by band: good-fun answers', target: 'Post by Jo Park', note: '' },
+      { at: NOW - 2 * D, by: 'brian@thelateshift.example', what: 'Verified venue', target: 'Riverside Hall', note: 'Called the box office' }
+    ]
   };
 }
 
-// ---------------- live Firebase
+// ======================================================= API (demo + live)
+function demoApi(d) {
+  const log = (what, target, note) => d.audit.unshift({ at: Date.now(), by: 'you (demo)', what, target, note: note || '' });
+  return {
+    mode: 'Demo data', role: 'admin', email: 'demo@fameplan',
+    async load() { return d; },
+    async modAction(id, action, note) { const it = d.queue.find((x) => x.id === id); Object.assign(it, { status: 'resolved', resolution: action, note }); log('Moderation: ' + action.replace(/_/g, ' '), it.label, note); },
+    async userAction(uid, action, note) {
+      const u = d.users.find((x) => x.uid === uid);
+      const map = { warn: () => { u.warnings++; }, clear_warnings: () => { u.warnings = 0; u.pauses = 0; }, suspend_7d: () => { u.status = 'suspended'; }, terminate: () => { u.status = 'terminated'; }, restore: () => { u.status = 'active'; }, grant_pro: () => { u.plan = 'Pro'; }, make_moderator: () => { u.moderator = true; }, remove_moderator: () => { u.moderator = false; } };
+      map[action](); log('Account: ' + action.replace(/_/g, ' '), u.name + ' (' + u.uid + ')', note);
+    },
+    async venueAction(id, action, note) { const v = d.venues.find((x) => x.id === id); v.status = action === 'verify' ? 'verified' : 'rejected'; log(action === 'verify' ? 'Verified venue' : 'Rejected venue claim', v.name, note); },
+    async moneyAction(kind, id, action, note) {
+      const list = kind === 'payout' ? d.payouts : d.disputes; const it = list.find((x) => x.id === id);
+      it.status = { release: 'paid', hold: 'held', resolve_band: 'resolved', resolve_venue: 'resolved', split: 'resolved' }[action] || it.status; it.resolution = action;
+      log((kind === 'payout' ? 'Payout: ' : 'Dispute: ') + action.replace(/_/g, ' '), it.band ? it.band + ' · ' + money(it.amount) : it.parties, note);
+    },
+    async setConfig(cfg, note) { d.config = cfg; log('Changed app settings', '', note); },
+    async broadcast(msg) { log('Sent announcement to ' + msg.audience, msg.title, msg.note); }
+  };
+}
+
 async function liveApi(cfg) {
   const V = '11.0.2';
   const [{ initializeApp }, A, F, FN] = await Promise.all([
@@ -146,127 +264,369 @@ async function liveApi(cfg) {
     import(`https://www.gstatic.com/firebasejs/${V}/firebase-firestore.js`),
     import(`https://www.gstatic.com/firebasejs/${V}/firebase-functions.js`)
   ]);
-  const app = initializeApp(cfg);
-  const auth = A.getAuth(app), db = F.getFirestore(app), fns = FN.getFunctions(app, window.FAME_PLAN_REGION || 'us-east1');
-  const act = FN.httpsCallable(fns, 'moderatorAction');
+  const app = initializeApp(cfg), auth = A.getAuth(app), db = F.getFirestore(app), fns = FN.getFunctions(app, window.FAME_PLAN_REGION || 'us-east1');
+  const call = (n) => (data) => FN.httpsCallable(fns, n)(data).then((r) => r.data);
+  const ts = (v) => (v && v.toMillis ? v.toMillis() : v);
+  const rows = (snap) => snap.docs.map((x) => { const o = Object.assign({ id: x.id }, x.data()); for (const k of ['updatedAt', 'submitted', 'date', 'opened', 'at', 'joined', 'lastActive']) if (o[k]) o[k] = ts(o[k]); return o; });
   return new Promise((resolve) => {
-    $('#google').onclick = async () => {
-      try { await A.signInWithPopup(auth, new A.GoogleAuthProvider()); } catch (e) { $('#signin-err').textContent = e.message; }
-    };
-    $('#signout').onclick = () => A.signOut(auth);
+    $('#google').onclick = () => A.signInWithPopup(auth, new A.GoogleAuthProvider()).catch((e) => { $('#signin-err').textContent = e.message; });
+    $('#signout').onclick = () => A.signOut(auth).then(() => location.reload());
     A.onAuthStateChanged(auth, async (user) => {
-      if (!user) { $('#signin').hidden = false; $('#app').hidden = true; $('#signout').hidden = true; $('#who').textContent = ''; return; }
+      if (!user) { $('#signin').hidden = false; $('#app').hidden = true; $('#signout').hidden = true; return; }
       const tok = await user.getIdTokenResult(true);
-      if (!tok.claims.moderator) { $('#signin-err').textContent = user.email + ' is not a moderator.'; await A.signOut(auth); return; }
-      $('#signin').hidden = true; $('#app').hidden = false; $('#signout').hidden = false; $('#who').textContent = user.email;
+      const role = tok.claims.admin ? 'admin' : tok.claims.moderator ? 'moderator' : null;
+      if (!role) { $('#signin-err').textContent = user.email + ' has no staff access.'; await A.signOut(auth); return; }
+      $('#signin').hidden = true; $('#signout').hidden = false;
       resolve({
-        mode: 'Live',
-        listen(cb) {
-          const st = $('#f-status').value;
-          const q = F.query(F.collection(db, 'modQueue'), F.where('status', '==', st), F.orderBy('updatedAt', 'desc'), F.limit(200));
-          if (this._un) this._un();
-          this._un = F.onSnapshot(q, async (snap) => {
-            const list = snap.docs.map((d) => Object.assign({ id: d.id }, d.data()));
-            await Promise.all(list.map(async (it) => {
-              if (!it.authorId) return;
-              const s = await F.getDoc(F.doc(db, 'standing', it.authorId));
-              const d = s.exists() ? s.data() : {};
-              it.standing = { warnings: d.warnings || 0, pauses: (d.pauses || []).length, status: d.status || 'active', pausedUntil: d.pausedUntil || 0 };
-            }));
-            cb(list);
-          });
+        mode: 'Live', role, email: user.email,
+        async load() {
+          const out = demoData(); // gives the shape; live fields replace it below
+          for (const k of ['queue', 'venues', 'payouts', 'disputes', 'audit', 'bookings']) out[k] = [];
+          out.queue = rows(await F.getDocs(F.query(F.collection(db, 'modQueue'), F.orderBy('updatedAt', 'desc'), F.limit(200))));
+          out.users = (await call('adminListUsers')({})).users;
+          if (role === 'admin') {
+            Object.assign(out, { kpis: Object.fromEntries(Object.keys(out.kpis).map((k) => [k, 0])), dau: [], revenue: [], funnel: [], signups: [], cities: [] }, await call('adminOverview')({}));
+            out.dau = (out.dau || []).map((p) => ({ date: new Date(p.date), v: p.v }));
+            out.venues = rows(await F.getDocs(F.query(F.collection(db, 'venueClaims'), F.orderBy('submitted', 'desc'), F.limit(100))));
+            out.payouts = rows(await F.getDocs(F.query(F.collection(db, 'payoutReviews'), F.orderBy('date', 'desc'), F.limit(100))));
+            out.disputes = rows(await F.getDocs(F.query(F.collection(db, 'disputes'), F.where('status', '==', 'open'), F.limit(100))));
+            const c = await F.getDoc(F.doc(db, 'config', 'app')); if (c.exists()) out.config = c.data();
+            out.audit = rows(await F.getDocs(F.query(F.collection(db, 'adminLog'), F.orderBy('at', 'desc'), F.limit(200))));
+          }
+          return out;
         },
-        async act(id, action, note) { return (await act({ itemId: id, action, note })).data; }
+        modAction: (itemId, action, note) => call('moderatorAction')({ itemId, action, note }),
+        userAction: (uid, action, note) => call('adminAction')({ kind: 'user', id: uid, action, note }),
+        venueAction: (id, action, note) => call('adminAction')({ kind: 'venue', id, action, note }),
+        moneyAction: (kind, id, action, note) => call('adminAction')({ kind, id, action, note }),
+        setConfig: (config, note) => call('adminSetConfig')({ config, note }),
+        broadcast: (msg) => call('adminBroadcast')(msg)
       });
     });
   });
 }
 
-// ---------------- UI
-function kindOf(it) { return it.type === 'account' ? 'account' : it.type === 'appeal' ? 'appeal' : (it.category || 'reported'); }
-function render() {
-  const st = $('#f-status').value, cat = $('#f-cat').value;
-  const list = items.filter((i) => (i.status || 'open') === st && (!cat || kindOf(i) === cat))
-    .sort((a, b) => (PRI[a.priority] ?? 3) - (PRI[b.priority] ?? 3) || b.updatedAt - a.updatedAt);
-  $('#items').innerHTML = list.length ? list.map((i) => `
-    <li><button class="item" data-id="${esc(i.id)}" aria-current="${sel === i.id}">
-      <div class="top"><span class="what">${esc(i.type === 'account' ? 'Account review' : i.type === 'appeal' ? 'Appeal' : (CAT[i.category] || i.label || 'Reported'))}</span>
-      <span class="pill pri-${esc(i.priority || 'normal')}">${esc(i.priority || 'normal')}</span></div>
-      <div class="muted">${esc(i.bandId || '')} · ${esc(i.type)} · ${ago(i.updatedAt)}${i.reports ? ' · ' + i.reports + ' report' + (i.reports > 1 ? 's' : '') : ''}</div>
-      ${i.text ? `<div class="snip" aria-hidden="true">${esc(i.text)}</div>` : ''}
-    </button></li>`).join('') : '<li class="empty">Nothing here. Nice.</li>';
-  $('#items').querySelectorAll('.item').forEach((b) => b.onclick = () => { sel = b.dataset.id; render(); detail(); });
+// ======================================================= CHARTS
+const CW = 640, CH = 220, CP = { l: 48, r: 12, t: 14, b: 28 };
+function niceMax(v, step) { return Math.max(step, Math.ceil(v / step) * step); }
+function lineChart(points, label) {
+  if (points.length < 2) return `<p class="muted small">${points.length ? fmtN(points[0].v) + ' active today. The chart fills in as days go by.' : 'No data yet.'}</p>`;
+  const vals = points.map((p) => p.v), max = niceMax(Math.max(...vals), 250);
+  const x = (i) => CP.l + (i / (points.length - 1)) * (CW - CP.l - CP.r), y = (v) => CP.t + (1 - v / max) * (CH - CP.t - CP.b);
+  const path = points.map((p, i) => (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(p.v).toFixed(1)).join(' ');
+  const xl = [0, 7, 14, 21, points.length - 1].map((i) => `<text x="${x(i)}" y="${CH - 8}" text-anchor="middle" font-size="11" fill="var(--faint)">${points[i].date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</text>`).join('');
+  return `<div class="chart" style="position:relative">
+  <svg viewBox="0 0 ${CW} ${CH}" role="img" aria-label="${esc(label)}. Latest ${fmtN(vals[vals.length - 1])}, highest ${fmtN(Math.max(...vals))}.">
+    ${[0, max / 2, max].map((t) => `<line x1="${CP.l}" x2="${CW - CP.r}" y1="${y(t)}" y2="${y(t)}" stroke="var(--line)"/><text x="${CP.l - 8}" y="${y(t) + 4}" text-anchor="end" font-size="11" fill="var(--faint)">${fmtN(t)}</text>`).join('')}
+    <path d="${path}" fill="none" stroke="var(--s1)" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${x(points.length - 1)}" cy="${y(vals[vals.length - 1])}" r="4" fill="var(--s1)" stroke="var(--card)" stroke-width="2"/>
+    ${xl}
+    <line class="xh" y1="${CP.t}" y2="${CH - CP.b}" stroke="var(--line2)" visibility="hidden"/>
+    <circle class="xd" r="5" fill="var(--s1)" stroke="var(--card)" stroke-width="2" visibility="hidden"/>
+    <rect class="hit" x="${CP.l}" y="0" width="${CW - CP.l - CP.r}" height="${CH - CP.b}" fill="transparent"/>
+  </svg><div class="tip" hidden></div></div>`;
 }
-function ago(t) { const m = Math.round((Date.now() - t) / 60000); return m < 60 ? m + 'm ago' : m < 1440 ? Math.round(m / 60) + 'h ago' : Math.round(m / 1440) + 'd ago'; }
-
-function detail() {
-  const it = items.find((i) => i.id === sel);
-  if (!it) { $('#detail').innerHTML = '<div class="empty">Pick an item from the queue.</div>'; return; }
-  const s = it.standing || {};
-  const blur = it.text && !shown[it.id];
-  const resolved = it.status === 'resolved';
-  $('#detail').innerHTML = `
-    ${it.category === 'minors' ? '<div class="banner"><b>Urgent.</b> Content is already removed and the author suspended. If this is child sexual abuse material, report it to NCMEC (CyberTipline) as required by law, then end the membership.</div>' : ''}
-    <div class="card">
-      <div class="row"><span class="pill pri-${esc(it.priority)}">${esc(it.priority)}</span><span class="pill">${esc(it.type)}</span><span class="muted">${esc(it.bandId || '')} · ${ago(it.updatedAt)} · flagged by ${esc(it.source || 'reports')}</span></div>
-      <h2 style="margin:0;font-size:20px">${esc(it.label || CAT[it.category] || 'Reported')}</h2>
-      ${it.text ? `<div class="content ${blur ? 'blur' : ''}" ${blur ? 'aria-hidden="true"' : ''}>${esc(it.text)}</div>
-      ${blur ? '<button class="btn" id="show">Show content</button>' : ''}` : ''}
-      ${it.reasons && it.reasons.length ? `<div class="muted">Report reasons: ${esc(it.reasons.join(', '))}</div>` : ''}
-    </div>
-    <div class="card">
-      <div class="row">
-        <div class="stat"><b>${it.fun || 0}</b><span>said good fun</span></div>
-        <div class="stat"><b>${it.hurt || 0}</b><span>said it bothered them</span></div>
-        <div class="stat"><b>${it.reports || 0}</b><span>reports</span></div>
-        <div class="stat"><b>${s.warnings ?? 0} / 3</b><span>author warnings</span></div>
-        <div class="stat"><b>${s.pauses ?? 0}</b><span>pauses (90 days)</span></div>
-        <div class="stat"><b>${esc(s.status || 'active')}</b><span>account</span></div>
-      </div>
-      ${it.category === 'hate' && it.fun ? '<div class="muted">Bandmates calling prejudice “good fun” doesn’t clear it. Judge it against the guidelines.</div>' : ''}
-    </div>
-    ${resolved ? `<div class="card"><b>Resolved: ${esc(it.resolution)}</b>${it.note ? `<span class="muted">${esc(it.note)}</span>` : ''}</div>` : `
-    <div class="card">
-      <label for="note" style="font-weight:600">Note for the log (the user doesn’t see this)</label>
-      <textarea id="note" placeholder="Why you decided this"></textarea>
-      <div class="row">${ACTIONS.filter(([a]) => a !== 'restore' || it.type === 'appeal' || s.status !== 'active').map(([a, l, k, h]) => `<button class="btn ${k}" data-act="${a}" title="${esc(h)}">${esc(l)}</button>`).join('')}</div>
-      <p class="muted" style="margin:0">Hover a button for what it does. Every action is logged with your name.</p>
-    </div>`}`;
-  const sh = $('#show'); if (sh) sh.onclick = () => { shown[it.id] = true; detail(); };
-  $('#detail').querySelectorAll('[data-act]').forEach((b) => b.onclick = () => run(it, b.dataset.act));
+function wireLine(el, points) {
+  if (points.length < 2) return;
+  const svg = el.querySelector('svg'), tip = el.querySelector('.tip'), hit = el.querySelector('.hit'), xh = el.querySelector('.xh'), xd = el.querySelector('.xd');
+  const vals = points.map((p) => p.v), max = niceMax(Math.max(...vals), 250);
+  hit.addEventListener('pointermove', (e) => {
+    const r = svg.getBoundingClientRect(), sx = (e.clientX - r.left) * (CW / r.width);
+    const i = Math.max(0, Math.min(points.length - 1, Math.round(((sx - CP.l) / (CW - CP.l - CP.r)) * (points.length - 1))));
+    const cx = CP.l + (i / (points.length - 1)) * (CW - CP.l - CP.r), cy = CP.t + (1 - vals[i] / max) * (CH - CP.t - CP.b);
+    xh.setAttribute('x1', cx); xh.setAttribute('x2', cx); xh.setAttribute('visibility', 'visible'); xd.setAttribute('cx', cx); xd.setAttribute('cy', cy); xd.setAttribute('visibility', 'visible');
+    tip.hidden = false; tip.style.left = (cx / CW) * r.width + 'px'; tip.style.top = (cy / CH) * r.height + 'px';
+    tip.textContent = points[i].date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }) + ' · ' + fmtN(vals[i]) + ' active';
+  });
+  hit.addEventListener('pointerleave', () => { tip.hidden = true; xh.setAttribute('visibility', 'hidden'); xd.setAttribute('visibility', 'hidden'); });
 }
-
-function ask(title, body) {
-  return new Promise((res) => {
-    const d = $('#confirm'); $('#c-title').textContent = title; $('#c-body').textContent = body;
-    $('#c-yes').onclick = () => { d.close(); res(true); }; $('#c-no').onclick = () => { d.close(); res(false); };
-    d.showModal();
+function stackedBars(rows, keys, names, colors, label) {
+  const tot = rows.map((r) => keys.reduce((s, k) => s + r[k], 0)), max = niceMax(Math.max(...tot), 200);
+  const bw = (CW - CP.l - CP.r) / rows.length, barW = Math.min(44, bw * 0.55);
+  const y = (v) => CP.t + (1 - v / max) * (CH - CP.t - CP.b);
+  let marks = '';
+  rows.forEach((r, i) => {
+    let acc = 0; const cx = CP.l + bw * i + bw / 2, x0 = cx - barW / 2, x1 = cx + barW / 2;
+    keys.forEach((k, j) => {
+      const yb = y(acc) - (j ? 2 : 0), yt = y(acc + r[k]); acc += r[k];
+      const top = j === keys.length - 1, rad = top ? Math.min(4, (yb - yt) / 2) : 0;
+      const d = rad ? `M${x0} ${yb} V${yt + rad} Q${x0} ${yt} ${x0 + rad} ${yt} H${x1 - rad} Q${x1} ${yt} ${x1} ${yt + rad} V${yb} Z` : `M${x0} ${yb} V${yt} H${x1} V${yb} Z`;
+      marks += `<path d="${d}" fill="${colors[j]}" data-tip="${esc(r.m + ' · ' + names[j] + ' ' + money(r[k]) + ' · total ' + money(tot[i]))}"/>`;
+    });
+    marks += `<rect x="${cx - bw / 2}" y="0" width="${bw}" height="${CH - CP.b}" fill="transparent" data-hit="${i}"/>`;
+    marks += `<text x="${cx}" y="${CH - 8}" text-anchor="middle" font-size="11" fill="var(--faint)">${r.m}</text>`;
+    if (i === rows.length - 1) marks += `<text x="${cx}" y="${y(tot[i]) - 6}" text-anchor="middle" font-size="12" font-weight="700" fill="var(--ink)">${money(tot[i])}</text>`;
+  });
+  const grid = [0, max / 2, max].map((t) => `<line x1="${CP.l}" x2="${CW - CP.r}" y1="${y(t)}" y2="${y(t)}" stroke="var(--line)"/><text x="${CP.l - 8}" y="${y(t) + 4}" text-anchor="end" font-size="11" fill="var(--faint)">${money(t)}</text>`).join('');
+  return `<div class="legend">${names.map((n, j) => `<span><i style="background:${colors[j]}" aria-hidden="true"></i>${n}</span>`).join('')}</div>
+  <div class="chart" style="position:relative"><svg viewBox="0 0 ${CW} ${CH}" role="img" aria-label="${esc(label)}">${grid}${marks}</svg><div class="tip" hidden></div></div>`;
+}
+function wireBars(el, rows) {
+  const svg = el.querySelector('svg'), tip = el.querySelector('.tip');
+  svg.querySelectorAll('[data-hit]').forEach((h) => {
+    const i = +h.dataset.hit, r = rows[i];
+    h.addEventListener('pointerenter', () => {
+      const sr = svg.getBoundingClientRect(), b = h.getBoundingClientRect();
+      tip.hidden = false; tip.textContent = `${r.m}: Pro ${money(r.pro)} · Ads ${money(r.ads)} · Total ${money(r.pro + r.ads)}`;
+      tip.style.left = (b.left - sr.left + b.width / 2) + 'px'; tip.style.top = '24px';
+    });
+    h.addEventListener('pointerleave', () => { tip.hidden = true; });
   });
 }
-async function run(it, action) {
-  const note = ($('#note') || {}).value || '';
-  if (['terminate', 'suspend_7d'].includes(action)) {
-    const ok = await ask(action === 'terminate' ? 'End this membership?' : 'Suspend for 7 days?',
-      action === 'terminate' ? 'The account is disabled and signed out everywhere. They’re told they can appeal within 30 days.' : 'They can’t post or sign in to post for 7 days.');
-    if (!ok) return;
-    if (!note.trim()) { toast('Add a note explaining why first.'); $('#note').focus(); return; }
-  }
-  try { await api.act(it.id, action, note); toast('Done: ' + action.replace(/_/g, ' ')); if (api.mode !== 'Live') { render(); detail(); } }
-  catch (e) { toast('Failed: ' + (e.message || e)); }
-}
-function toast(t) { const el = document.createElement('div'); el.className = 'toast'; el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2600); }
 
-async function start() {
-  const cfg = window.FAME_PLAN_FIREBASE;
-  const demo = !cfg || new URLSearchParams(location.search).has('demo');
-  if (demo) { api = demoApi(); $('#app').hidden = false; } else { $('#signin').hidden = false; api = await liveApi(cfg); }
-  $('#mode').textContent = api.mode;
-  const go = () => api.listen((l) => { items = l; render(); detail(); });
-  $('#f-status').onchange = () => { sel = null; if (api.mode === 'Live') go(); else render(); detail(); };
-  $('#f-cat').onchange = render;
-  go();
+// ======================================================= APP STATE
+let api, D0, view = 'overview', sel = { mod: null, user: null }, shown = {}, filters = { modStatus: 'open', userQ: '', userRole: '', venue: 'pending' }, tables = {}, draft = null;
+const SECTIONS = [
+  ['overview', 'Overview', '◎', 'admin'], ['moderation', 'Moderation', '⚑', 'moderator'], ['people', 'People', '☺', 'moderator'],
+  ['venues', 'Venues', '✓', 'admin'], ['money', 'Money', '$', 'admin'], ['control', 'App control', '⚙', 'admin'], ['audit', 'Audit log', '☰', 'admin']
+];
+const canSee = (min) => api.role === 'admin' || min === 'moderator';
+
+function counts() {
+  return { moderation: D0.queue.filter((q) => q.status === 'open').length, venues: D0.venues.filter((v) => v.status === 'pending').length, money: D0.payouts.filter((p) => p.status === 'review').length + D0.disputes.filter((x) => x.status === 'open').length };
 }
-start();
+function renderNav() {
+  const c = counts(), list = SECTIONS.filter((s) => canSee(s[3]));
+  $('#side').innerHTML = list.map((s, i) => `${s[0] === 'control' ? '<div class="sep" role="separator"></div>' : ''}<button data-nav="${s[0]}" aria-current="${view === s[0] ? 'page' : 'false'}"><span aria-hidden="true" style="width:18px;text-align:center">${s[2]}</span>${s[1]}${c[s[0]] ? `<span class="count">${c[s[0]]}<span style="position:absolute;left:-999px"> waiting</span></span>` : ''}</button>`).join('');
+  $('#mobsel').innerHTML = list.map((s) => `<option value="${s[0]}" ${view === s[0] ? 'selected' : ''}>${s[1]}${c[s[0]] ? ' (' + c[s[0]] + ')' : ''}</option>`).join('');
+}
+function go(v) { view = v; renderNav(); render(); $('#view').focus({ preventScroll: true }); window.scrollTo(0, 0); }
+function toast(t, warn) { document.querySelectorAll('.toast').forEach((x) => x.remove()); const el = document.createElement('div'); el.className = 'toast' + (warn ? ' warn' : ''); el.setAttribute('role', 'status'); el.textContent = t; document.body.appendChild(el); setTimeout(() => el.remove(), 2800); }
+function confirmDlg(title, body, danger = true) {
+  return new Promise((res) => {
+    const d = $('#confirm'); $('#c-title').textContent = title; $('#c-body').textContent = body; $('#c-note').value = ''; $('#c-err').textContent = '';
+    $('#c-yes').className = 'btn ' + (danger ? 'danger' : 'primary');
+    $('#c-yes').onclick = () => { const n = $('#c-note').value.trim(); if (!n) { $('#c-err').textContent = 'Add a note so the audit log says why.'; $('#c-note').focus(); return; } d.close(); res(n); };
+    $('#c-no').onclick = () => { d.close(); res(null); };
+    d.oncancel = () => res(null);
+    d.showModal(); $('#c-note').focus();
+  });
+}
+async function run(fn, okMsg) { try { await fn(); toast(okMsg); if (api.mode === 'Live') D0 = await api.load(); renderNav(); render(); } catch (e) { toast('Didn’t work: ' + (e.message || e), true); } }
+
+// ======================================================= VIEWS
+function vOverview() {
+  const k = D0.kpis;
+  const tiles = [
+    ['Total users', fmtN(k.users), k.usersD, 'vs last month'], ['Active today', fmtN(k.dau), null, fmtN(k.mau) + ' this month'], ['Bands', fmtN(k.bands), null, fmtN(k.venues) + ' venues · ' + k.venuesPending + ' to verify'],
+    ['Pro bands', fmtN(k.pro), null, money(k.mrr) + ' a month'], ['Ad revenue (30 days)', money(k.ads30), null, 'Free plan only'], ['Pitches (30 days)', fmtN(k.pitches30), null, fmtN(k.bookings30) + ' became bookings'],
+    ['Payouts (30 days)', money(k.payouts30), null, 'Through Square and PayPal'], ['Open moderation', fmtN(counts().moderation), null, 'Median reply ' + k.modHours + ' h']
+  ];
+  const f0 = (D0.funnel[0] && D0.funnel[0][1]) || 1;
+  if (!D0.dau.length) return `<div><h1 class="h">Overview</h1><p class="sub">No numbers yet. They appear after the first nightly run at 4 AM Eastern.</p></div>`;
+  return `<div><h1 class="h">Overview</h1><p class="sub">How Fame Plan is doing. Numbers refresh every night at 4 AM Eastern.</p></div>
+  <section class="grid kpis" aria-label="Key numbers">${tiles.map((t) => `<div class="card kpi"><span class="k">${t[0]}</span><span class="v">${t[1]}</span><span class="d ${t[2] == null ? 'muted' : t[2] >= 0 ? 'up' : 'down'}">${t[2] == null ? esc(t[3]) : (t[2] >= 0 ? '▲ ' : '▼ ') + Math.abs(t[2]) + '% ' + esc(t[3])}</span></div>`).join('')}</section>
+  <section class="grid two">
+    <div class="card"><div class="row"><h2 class="h grow">Daily active users · 30 days</h2><button class="btn sm" data-tbl="dau">${tables.dau ? 'Show chart' : 'Show table'}</button></div>
+      ${tables.dau ? `<div class="tablewrap" style="max-height:260px;overflow-y:auto"><table><thead><tr><th>Day</th><th class="num">Active users</th></tr></thead><tbody>${D0.dau.slice().reverse().map((p) => `<tr><td>${p.date.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}</td><td class="num">${fmtN(p.v)}</td></tr>`).join('')}</tbody></table></div>` : `<div id="ch-dau">${lineChart(D0.dau, 'Daily active users, last 30 days')}</div>`}</div>
+    <div class="card"><div class="row"><h2 class="h grow">Revenue by month</h2><button class="btn sm" data-tbl="rev">${tables.rev ? 'Show chart' : 'Show table'}</button></div>
+      ${tables.rev ? `<div class="tablewrap"><table><thead><tr><th>Month</th><th class="num">Pro</th><th class="num">Ads</th><th class="num">Total</th></tr></thead><tbody>${D0.revenue.map((r) => `<tr><td>${r.m}</td><td class="num">${money(r.pro)}</td><td class="num">${money(r.ads)}</td><td class="num">${money(r.pro + r.ads)}</td></tr>`).join('')}</tbody></table></div>` : `<div id="ch-rev">${stackedBars(D0.revenue, ['pro', 'ads'], ['Pro subscriptions', 'Ads'], ['var(--s1)', 'var(--s2)'], 'Revenue by month from Pro subscriptions and ads')}</div>`}</div>
+  </section>
+  <section class="grid two">
+    <div class="card"><h2 class="h">Booking funnel · 30 days</h2><p class="sub" style="margin:0">From a band’s pitch to a played show.</p>
+      <div class="stack">${D0.funnel.map((f) => `<div><div class="row small"><span class="grow">${f[0]}</span><b>${fmtN(f[1])}</b><span class="muted" style="width:48px;text-align:right">${Math.round(f[1] / f0 * 100)}%</span></div><div class="bar" aria-hidden="true"><i style="width:${(f[1] / f0 * 100).toFixed(1)}%"></i></div></div>`).join('')}</div></div>
+    <div class="card"><h2 class="h">Where people are</h2>
+      <div class="tablewrap"><table><thead><tr><th>City</th><th class="num">Users</th><th class="num">Shows (30d)</th></tr></thead><tbody>${D0.cities.map((c) => `<tr><td>${esc(c[0])}</td><td class="num">${fmtN(c[1])}</td><td class="num">${fmtN(c[2])}</td></tr>`).join('')}</tbody></table></div>
+      <h2 class="h" style="margin-top:6px">New sign-ups · 30 days</h2>
+      <div class="row">${D0.signups.map((s) => `<span class="pill">${esc(s[0])} <b style="color:var(--ink)">${fmtN(s[1])}</b></span>`).join('')}</div></div>
+  </section>`;
+}
+
+const CAT = { minors: 'Sexual content involving minors', hate: 'Racial or other prejudice', threat: 'Threat / self-harm aimed at someone', repeat: 'Repeat offender', appeal: 'Appeal' };
+const MOD_ACTIONS = [['dismiss', 'Dismiss: it’s fine', 'ok'], ['remove', 'Remove content', 'warn'], ['remove_and_warn', 'Remove + warning', 'warn'], ['suspend_7d', 'Suspend 7 days', 'danger'], ['terminate', 'End membership', 'danger'], ['restore', 'Restore account', 'ok']];
+function vModeration() {
+  const PRI = { urgent: 0, high: 1, normal: 2 };
+  const list = D0.queue.filter((q) => (q.status || 'open') === filters.modStatus).sort((a, b) => (PRI[a.priority] ?? 3) - (PRI[b.priority] ?? 3) || b.updatedAt - a.updatedAt);
+  let it = list.find((q) => q.id === sel.mod) || list[0];
+  sel.mod = it ? it.id : null;
+  const u = it && D0.users.find((x) => x.uid === it.authorId);
+  const blur = it && it.text && !shown[it.id];
+  return `<div class="row"><div class="grow"><h1 class="h">Moderation</h1><p class="sub">Flagged posts, reports, repeat offenders and appeals. Swearing isn’t flagged. Prejudice and threats are.</p></div>
+    <label class="small muted">Show <select id="f-mod">${['open', 'resolved'].map((s) => `<option value="${s}" ${filters.modStatus === s ? 'selected' : ''}>${s === 'open' ? 'Open' : 'Resolved'}</option>`).join('')}</select></label></div>
+  <div class="split">
+    <div class="card" style="padding:0"><div class="tablewrap"><table><thead><tr><th>Item</th><th>Priority</th><th>Band</th><th class="num">When</th></tr></thead><tbody>
+      ${list.length ? list.map((q) => `<tr class="click" data-mod="${q.id}" tabindex="0" aria-selected="${q.id === sel.mod}"><td><b>${esc(q.type === 'account' ? 'Account review' : q.type === 'appeal' ? 'Appeal' : CAT[q.category] || q.label)}</b><div class="tiny muted">${esc(q.type)}${q.reports ? ' · ' + q.reports + ' reports' : ''}</div></td><td><span class="pill ${q.priority === 'urgent' ? 'bad' : q.priority === 'high' ? 'warn' : ''}">${esc(q.priority)}</span></td><td class="small">${esc(q.bandId || '')}</td><td class="num muted small">${ago(q.updatedAt)}</td></tr>`).join('') : `<tr><td colspan="4" class="empty">Nothing here. Nice.</td></tr>`}
+    </tbody></table></div></div>
+    ${it ? `<div class="card" aria-label="Selected item" id="mod-detail">
+      ${it.category === 'minors' ? '<div class="banner"><b>Urgent.</b> Already removed and the author suspended. Report apparent CSAM to NCMEC’s CyberTipline as the law requires. Don’t download or forward it.</div>' : ''}
+      <div class="row"><span class="pill">${esc(it.type)}</span><span class="muted small">flagged by ${esc(it.source || 'reports')}</span></div>
+      <h2 class="h">${esc(it.label || CAT[it.category] || 'Reported')}</h2>
+      ${it.text ? `<div class="content ${blur ? 'blur' : ''}" ${blur ? 'aria-hidden="true"' : ''}>${esc(it.text)}</div>${blur ? `<button class="btn sm" data-show="${it.id}" style="align-self:flex-start">Show content</button>` : ''}` : ''}
+      ${it.reasons && it.reasons.length ? `<div class="small muted">Report reasons: ${esc(it.reasons.join(', '))}</div>` : ''}
+      <dl class="kv"><dt>Author</dt><dd>${u ? `<button class="btn sm" data-openuser="${u.uid}">${esc(u.name)}</button>` : esc(it.authorId)}</dd><dt>Good fun / bothered</dt><dd>${it.fun || 0} / ${it.hurt || 0}</dd><dt>Author standing</dt><dd>${u ? u.warnings + ' of 3 warnings · ' + u.pauses + ' pauses' : '—'}</dd></dl>
+      ${it.category === 'hate' && it.fun ? '<p class="small muted" style="margin:0">Bandmates calling prejudice “good fun” doesn’t clear it.</p>' : ''}
+      ${it.status === 'resolved' ? `<span class="pill ok" style="align-self:flex-start">Resolved: ${esc(String(it.resolution || '').replace(/_/g, ' '))}</span>` : `<div class="row">${MOD_ACTIONS.filter(([a]) => a !== 'restore' || it.type === 'appeal').map(([a, l, k]) => `<button class="btn sm ${k}" data-modact="${a}">${l}</button>`).join('')}</div><p class="tiny muted" style="margin:0">Suspend and End membership ask for a note. Every action is logged.</p>`}
+    </div>` : '<div class="card empty">Nothing selected.</div>'}
+  </div>`;
+}
+
+const USER_ACTIONS = [['warn', 'Add warning', 'warn', 'moderator'], ['clear_warnings', 'Clear warnings', '', 'moderator'], ['suspend_7d', 'Suspend 7 days', 'danger', 'moderator'], ['terminate', 'End membership', 'danger', 'admin'], ['restore', 'Restore', 'ok', 'moderator'], ['grant_pro', 'Give Pro free', '', 'admin'], ['make_moderator', 'Make moderator', '', 'admin'], ['remove_moderator', 'Remove moderator', '', 'admin']];
+function vPeople() {
+  const q = filters.userQ.toLowerCase();
+  const list = D0.users.filter((u) => (!q || (u.name + ' ' + u.email + ' ' + u.org + ' ' + u.uid).toLowerCase().includes(q)) && (!filters.userRole || u.role === filters.userRole));
+  const u = D0.users.find((x) => x.uid === sel.user);
+  const roles = [...new Set(D0.users.map((x) => x.role))];
+  const stPill = (s) => `<span class="pill ${s === 'active' ? 'ok' : s === 'review' ? 'warn' : 'bad'}">${esc(s)}</span>`;
+  return `<div><h1 class="h">People</h1><p class="sub">Find any account. See their standing, give Pro, suspend or restore.</p></div>
+  <div class="row"><input type="search" id="f-q" aria-label="Search people" placeholder="Search name, email, band or ID" value="${esc(filters.userQ)}" style="flex:1;min-width:200px">
+    <label class="small muted">Role <select id="f-role"><option value="">All</option>${roles.map((r) => `<option ${filters.userRole === r ? 'selected' : ''}>${esc(r)}</option>`).join('')}</select></label></div>
+  <div class="split">
+    <div class="card" style="padding:0"><div class="tablewrap"><table><thead><tr><th>Name</th><th>Role</th><th>Plan</th><th>Status</th><th class="num">Last seen</th></tr></thead><tbody>
+    ${list.length ? list.map((x) => `<tr class="click" data-user="${x.uid}" tabindex="0" aria-selected="${x.uid === sel.user}"><td><b>${esc(x.name)}</b>${x.moderator ? ' <span class="pill accent">mod</span>' : ''}<div class="tiny muted">${esc(x.org)} · ${esc(x.city)}</div></td><td class="small">${esc(x.role)}</td><td class="small">${esc(x.plan)}</td><td>${stPill(x.status)}${x.warnings ? `<div class="tiny" style="color:var(--warn)">${x.warnings} warning${x.warnings > 1 ? 's' : ''}</div>` : ''}</td><td class="num small muted">${ago(x.lastActive)}</td></tr>`).join('') : '<tr><td colspan="5" class="empty">No one matches.</td></tr>'}
+    </tbody></table></div></div>
+    ${u ? `<div class="card" aria-label="Selected person" id="user-detail"><h2 class="h">${esc(u.name)}</h2><div class="row">${stPill(u.status)}<span class="pill">${esc(u.plan)}</span>${u.moderator ? '<span class="pill accent">Moderator</span>' : ''}</div>
+      <dl class="kv"><dt>Email</dt><dd>${esc(u.email)}</dd><dt>Role</dt><dd>${esc(u.role)} · ${esc(u.org)}</dd><dt>City</dt><dd>${esc(u.city)}</dd><dt>Joined</dt><dd>${new Date(u.joined).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</dd><dt>Last seen</dt><dd>${ago(u.lastActive)}</dd><dt>Standing</dt><dd>${u.warnings} of 3 warnings · ${u.pauses} pauses in 90 days</dd><dt>User ID</dt><dd class="small muted">${esc(u.uid)}</dd></dl>
+      <div class="row">${USER_ACTIONS.filter(([a, , , min]) => canSee(min) && !(a === 'restore' && u.status === 'active') && !(a === 'make_moderator' && u.moderator) && !(a === 'remove_moderator' && !u.moderator) && !(a === 'grant_pro' && u.plan === 'Pro')).map(([a, l, k]) => `<button class="btn sm ${k}" data-useract="${a}">${l}</button>`).join('')}</div>
+      <p class="tiny muted" style="margin:0">Staff can’t read private chats. Content reaches moderators only when it’s flagged or reported.</p>
+    </div>` : '<div class="card empty">Pick a person to see their account.</div>'}
+  </div>`;
+}
+
+function vVenues() {
+  const list = D0.venues.filter((v) => filters.venue === 'all' || v.status === filters.venue);
+  return `<div class="row"><div class="grow"><h1 class="h">Venue verification</h1><p class="sub">Verified venues get a badge, so bands know a booking request is real.</p></div>
+    <label class="small muted">Show <select id="f-venue">${[['pending', 'Waiting'], ['verified', 'Verified'], ['rejected', 'Rejected'], ['all', 'All']].map(([v, l]) => `<option value="${v}" ${filters.venue === v ? 'selected' : ''}>${l}</option>`).join('')}</select></label></div>
+  <div class="grid two">${list.length ? list.map((v) => `<article class="card" aria-labelledby="vn-${v.id}">
+    <div class="row"><h2 class="h grow" id="vn-${v.id}">${esc(v.name)}</h2><span class="pill ${v.status === 'verified' ? 'ok' : v.status === 'rejected' ? 'bad' : 'warn'}">${esc(v.status === 'pending' ? 'waiting' : v.status)}</span></div>
+    <span class="small muted">${esc(v.city)}${v.cap ? ' · holds ' + v.cap : ''} · claimed by ${esc(v.by)} (${esc(v.email)}) · ${ago(v.submitted)}</span>
+    ${(v.evidence || []).length ? `<ul style="margin:0;padding-left:18px" class="small">${v.evidence.map((e) => `<li>${esc(e)}</li>`).join('')}</ul>` : ''}
+    ${v.risk ? `<div class="banner">${esc(v.risk)}</div>` : ''}
+    ${v.status === 'pending' ? `<div class="row"><button class="btn sm ok" data-venue="${v.id}" data-va="verify">Verify</button><button class="btn sm danger" data-venue="${v.id}" data-va="reject">Reject</button></div>` : ''}
+  </article>`).join('') : '<div class="card empty">Nothing here.</div>'}</div>`;
+}
+
+function vMoney() {
+  const po = D0.payouts, ds = D0.disputes.filter((d) => d.status === 'open');
+  return `<div><h1 class="h">Bookings & money</h1><p class="sub">Payouts held for review, disputes between bands and venues, and the latest bookings. Fame Plan never holds band money. Square and PayPal do.</p></div>
+  <section class="card"><h2 class="h">Payouts held for review</h2><p class="small muted" style="margin:0">Held automatically when over $2,000, a band’s first payout, or bank details changed in the last 7 days.</p>
+    <div class="tablewrap"><table><thead><tr><th>Band</th><th>Venue</th><th class="num">Amount</th><th>Why held</th><th>Status</th><th></th></tr></thead><tbody>
+    ${po.length ? po.map((p) => `<tr><td><b>${esc(p.band)}</b></td><td class="small">${esc(p.venue)}</td><td class="num">${money(p.amount)}</td><td class="small muted">${esc(p.reason || '—')}</td><td><span class="pill ${p.status === 'paid' ? 'ok' : p.status === 'held' ? 'bad' : 'warn'}">${esc(p.status === 'review' ? 'Needs review' : p.status)}</span></td><td>${p.status === 'review' ? `<div class="row" style="flex-wrap:nowrap"><button class="btn sm ok" data-money="payout" data-id="${p.id}" data-ma="release">Release</button><button class="btn sm danger" data-money="payout" data-id="${p.id}" data-ma="hold">Hold</button></div>` : ''}</td></tr>`).join('') : '<tr><td colspan="6" class="empty">No payouts waiting.</td></tr>'}
+    </tbody></table></div></section>
+  <section class="card"><h2 class="h">Open disputes</h2>
+    ${ds.length ? ds.map((d) => `<div class="card" style="background:var(--bg)"><div class="row"><b class="grow">${esc(d.title)}</b><span class="pill warn">${money(d.amount)} at stake</span></div><span class="small muted">${esc(d.parties)} · opened ${ago(d.opened)}</span>
+      <div class="row"><button class="btn sm" data-money="dispute" data-id="${d.id}" data-ma="resolve_band">Side with the band</button><button class="btn sm" data-money="dispute" data-id="${d.id}" data-ma="resolve_venue">Side with the venue</button><button class="btn sm" data-money="dispute" data-id="${d.id}" data-ma="split">Split the difference</button></div></div>`).join('') : '<p class="muted" style="margin:0">No open disputes.</p>'}
+  </section>
+  <section class="card"><h2 class="h">Latest bookings</h2><div class="tablewrap"><table><thead><tr><th>Date</th><th>Venue</th><th>Lineup</th><th>Deal</th><th>Status</th></tr></thead><tbody>${D0.bookings.length ? D0.bookings.map((b) => `<tr>${b.map((c, i) => `<td class="${i === 0 ? '' : 'small'}" style="white-space:nowrap">${esc(c)}</td>`).join('')}</tr>`).join('') : '<tr><td colspan="5" class="empty">No bookings yet.</td></tr>'}</tbody></table></div></section>`;
+}
+
+function vControl() {
+  if (!draft) draft = JSON.parse(JSON.stringify(D0.config));
+  const c = draft, m = c.moderation;
+  const changed = JSON.stringify(draft) !== JSON.stringify(D0.config);
+  const num = (k, label, step, min, max, hint) => `<label class="stack small" style="gap:4px"><b>${label}</b><input type="number" data-mod-k="${k}" value="${m[k]}" step="${step}" min="${min}" max="${max}" style="width:140px"><span class="tiny muted">${hint}</span></label>`;
+  return `<div class="row"><div class="grow"><h1 class="h">App control</h1><p class="sub">Feature switches, safety settings and announcements. Apps pick up changes within a minute.</p></div>
+    <button class="btn" data-ctl="reset" ${changed ? '' : 'disabled'}>Undo changes</button><button class="btn primary" data-ctl="save" ${changed ? '' : 'disabled'}>Save changes</button></div>
+  ${changed ? '<div class="banner">You have unsaved changes.</div>' : ''}
+  ${D0.config.flags.maintenance[0] ? '<div class="banner"><b>Maintenance mode is on.</b> The app is read-only for everyone until you turn it off.</div>' : ''}
+  <section class="grid two">
+    <div class="card"><h2 class="h">Features</h2>${Object.entries(c.flags).map(([k, f]) => `<div class="flag"><div class="grow"><b>${esc(f[1])}</b><div class="small muted">${esc(f[2])}</div></div><button class="switch" role="switch" aria-checked="${f[0]}" aria-label="${esc(f[1])}" data-flag="${k}"><span></span></button></div>`).join('')}</div>
+    <div class="card"><h2 class="h">Safety settings</h2><p class="small muted" style="margin:0">These match the Terms of Service. If you change one, update the Terms too.</p>
+      <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(170px,1fr))">
+        ${num('warningsBeforePause', 'Warnings before a pause', 1, 1, 10, 'Default 3')}${num('pauseHours', 'Pause length (hours)', 1, 1, 168, 'Default 24')}
+        ${num('pausesBeforeReview', 'Pauses before account review', 1, 1, 10, 'In 90 days. Default 3')}${num('reportsToAutoHide', 'Reports to auto-blur', 1, 1, 20, 'From different people. Default 3')}
+        ${num('hateThreshold', 'Prejudice sensitivity', 0.05, 0.1, 0.95, 'Lower flags more. Default 0.50')}${num('threatThreshold', 'Threat sensitivity', 0.05, 0.1, 0.95, 'Lower flags more. Default 0.55')}
+      </div>
+      <label class="stack small" style="gap:4px"><b>Minimum app version</b><input type="text" data-minver value="${esc(c.minVersion)}" style="width:140px"><span class="tiny muted">Older apps are asked to update.</span></label>
+    </div>
+  </section>
+  <section class="card"><h2 class="h">Send an announcement</h2><p class="small muted" style="margin:0">Shows as a notification and a card on Home. Use sparingly.</p>
+    <label class="small">To <select id="an-aud"><option value="everyone">Everyone</option><option value="bands">Band members</option><option value="venues">Venue bookers</option><option value="pro">Pro bands</option></select></label>
+    <label class="stack small" style="gap:4px"><b>Title</b><input type="text" id="an-title" maxlength="60" placeholder="e.g. Lineup tagging is here"></label>
+    <label class="stack small" style="gap:4px"><b>Message</b><textarea id="an-body" maxlength="280" placeholder="One or two sentences"></textarea></label>
+    <div class="row"><button class="btn primary" data-ctl="announce">Send announcement</button><span id="an-err" class="small" role="alert" style="color:var(--warn)"></span></div>
+  </section>`;
+}
+
+function vAudit() {
+  return `<div><h1 class="h">Audit log</h1><p class="sub">Every staff action, who did it and why. Entries can’t be edited or deleted.</p></div>
+  <div class="card" style="padding:0"><div class="tablewrap"><table><thead><tr><th>When</th><th>Who</th><th>What</th><th>Target</th><th>Note</th></tr></thead><tbody>
+  ${D0.audit.length ? D0.audit.map((a) => `<tr><td class="small muted" style="white-space:nowrap">${ago(a.at)}</td><td class="small">${esc(a.by)}</td><td>${esc(a.what)}</td><td class="small">${esc(a.target || '—')}</td><td class="small muted">${esc(a.note || '')}</td></tr>`).join('') : '<tr><td colspan="5" class="empty">No actions yet.</td></tr>'}
+  </tbody></table></div></div>`;
+}
+
+function render() {
+  const V = { overview: vOverview, moderation: vModeration, people: vPeople, venues: vVenues, money: vMoney, control: vControl, audit: vAudit };
+  if (!SECTIONS.find((s) => s[0] === view && canSee(s[3]))) view = 'moderation';
+  $('#view').innerHTML = V[view]();
+  const dau = $('#ch-dau .chart'); if (dau) wireLine(dau, D0.dau);
+  const rev = $('#ch-rev .chart'); if (rev) wireBars(rev, D0.revenue);
+}
+
+// ======================================================= EVENTS
+const narrow = () => matchMedia('(max-width: 900px)').matches;
+document.addEventListener('click', async (e) => {
+  const t = e.target.closest('button, tr[data-mod], tr[data-user]'); if (!t || t.closest('dialog')) return;
+  const ds = t.dataset;
+  if (ds.nav) return go(ds.nav);
+  if (ds.tbl) { tables[ds.tbl] = !tables[ds.tbl]; return render(); }
+  if (ds.mod) { sel.mod = ds.mod; render(); if (narrow()) $('#mod-detail')?.scrollIntoView({ behavior: 'smooth' }); return; }
+  if (ds.user) { sel.user = ds.user; render(); if (narrow()) $('#user-detail')?.scrollIntoView({ behavior: 'smooth' }); return; }
+  if (ds.show) { shown[ds.show] = true; return render(); }
+  if (ds.openuser) { sel.user = ds.openuser; filters.userQ = ''; filters.userRole = ''; return go('people'); }
+  if (ds.modact) {
+    const it = D0.queue.find((q) => q.id === sel.mod); let note = '';
+    if (['suspend_7d', 'terminate'].includes(ds.modact)) { note = await confirmDlg(ds.modact === 'terminate' ? 'End this membership?' : 'Suspend for 7 days?', ds.modact === 'terminate' ? 'The account is disabled and signed out everywhere. They can appeal within 30 days.' : 'They can’t post, comment or message for 7 days.'); if (!note) return; }
+    return run(() => api.modAction(it.id, ds.modact, note), 'Done: ' + ds.modact.replace(/_/g, ' ').replace('7d', '7 days'));
+  }
+  if (ds.useract) {
+    const u = D0.users.find((x) => x.uid === sel.user); let note = '';
+    if (['suspend_7d', 'terminate', 'make_moderator', 'grant_pro'].includes(ds.useract)) {
+      const T = { suspend_7d: ['Suspend ' + u.name + ' for 7 days?', 'They can’t post, comment or message for a week.'], terminate: ['End ' + u.name + '’s membership?', 'Disables the account and signs them out everywhere. Bandmates keep the band’s shared content.'], make_moderator: ['Make ' + u.name + ' a moderator?', 'They’ll see flagged and reported content and can warn and suspend accounts.'], grant_pro: ['Give ' + u.name + '’s band Pro for free?', 'Pro stays on until you remove it. Shows as a $0 plan in revenue.'] }[ds.useract];
+      note = await confirmDlg(T[0], T[1], ds.useract === 'suspend_7d' || ds.useract === 'terminate'); if (!note) return;
+    }
+    return run(() => api.userAction(u.uid, ds.useract, note), u.name + ': ' + ds.useract.replace(/_/g, ' ').replace('7d', '7 days'));
+  }
+  if (ds.venue) {
+    const v = D0.venues.find((x) => x.id === ds.venue);
+    const note = await confirmDlg(ds.va === 'verify' ? 'Verify ' + v.name + '?' : 'Reject ' + v.name + '’s claim?', ds.va === 'verify' ? 'They get the verified badge and bands see their requests as trusted.' : 'The claim is closed and ' + v.by + ' is told why.', ds.va !== 'verify'); if (!note) return;
+    return run(() => api.venueAction(v.id, ds.va, note), v.name + (ds.va === 'verify' ? ' verified' : ' rejected'));
+  }
+  if (ds.money) {
+    const note = await confirmDlg({ release: 'Release this payout?', hold: 'Hold this payout?', resolve_band: 'Side with the band?', resolve_venue: 'Side with the venue?', split: 'Split the difference?' }[ds.ma], 'Both sides are told. Money moves through Square or PayPal, not Fame Plan.', ds.ma === 'hold'); if (!note) return;
+    return run(() => api.moneyAction(ds.money, ds.id, ds.ma, note), 'Done');
+  }
+  if (ds.flag) { draft.flags[ds.flag][0] = !draft.flags[ds.flag][0]; render(); $(`[data-flag="${ds.flag}"]`)?.focus(); return; }
+  if (ds.ctl === 'reset') { draft = null; return render(); }
+  if (ds.ctl === 'save') {
+    const m = draft.moderation;
+    if (!/^\d+\.\d+\.\d+$/.test(draft.minVersion)) return toast('Minimum version must look like 1.2.0', true);
+    if ([m.hateThreshold, m.threatThreshold].some((v) => !(v >= 0.1 && v <= 0.95))) return toast('Sensitivity must be between 0.10 and 0.95', true);
+    if (['warningsBeforePause', 'pauseHours', 'pausesBeforeReview', 'reportsToAutoHide'].some((k) => !(Number.isInteger(m[k]) && m[k] >= 1))) return toast('Counts must be whole numbers, 1 or more', true);
+    const risky = draft.flags.maintenance[0] !== D0.config.flags.maintenance[0] || (!draft.flags.feedFilter[0] && D0.config.flags.feedFilter[0]) || (!draft.flags.signupsOpen[0] && D0.config.flags.signupsOpen[0]);
+    const note = await confirmDlg('Save app settings?', risky ? 'This changes maintenance mode, sign-ups or the safety filter. Every user will notice.' : 'Every app picks these up within a minute.', risky); if (!note) return;
+    const cfg = draft; draft = null;
+    return run(() => api.setConfig(cfg, note), 'Settings saved');
+  }
+  if (ds.ctl === 'announce') {
+    const title = $('#an-title').value.trim(), body = $('#an-body').value.trim(), aud = $('#an-aud').value;
+    if (!title || !body) { $('#an-err').textContent = 'Add a title and a message.'; return; }
+    const note = await confirmDlg('Send to ' + $('#an-aud').selectedOptions[0].text.toLowerCase() + '?', '“' + title + '”. This can’t be unsent.', false); if (!note) return;
+    return run(() => api.broadcast({ audience: aud, title, body, note }), 'Announcement sent');
+  }
+});
+document.addEventListener('keydown', (e) => { if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('tr[data-mod], tr[data-user]')) { e.preventDefault(); e.target.click(); } });
+document.addEventListener('change', (e) => {
+  const t = e.target;
+  if (t.id === 'mobsel') return go(t.value);
+  if (t.id === 'f-mod') { filters.modStatus = t.value; sel.mod = null; return render(); }
+  if (t.id === 'f-role') { filters.userRole = t.value; return render(); }
+  if (t.id === 'f-venue') { filters.venue = t.value; return render(); }
+  if (t.dataset.modK) { draft.moderation[t.dataset.modK] = Number(t.value); return render(); }
+  if (t.hasAttribute('data-minver')) { draft.minVersion = t.value.trim(); return render(); }
+});
+document.addEventListener('input', (e) => { if (e.target.id === 'f-q') { filters.userQ = e.target.value; const pos = e.target.selectionStart; render(); const el = $('#f-q'); el.focus(); el.setSelectionRange(pos, pos); } });
+
+// ======================================================= START
+(async function start() {
+  const qs = new URLSearchParams(location.search), cfg = window.FAME_PLAN_FIREBASE, demo = !cfg || qs.has('demo');
+  if (demo) { api = demoApi(demoData()); if (qs.get('role') === 'moderator') { api.role = 'moderator'; api.email = 'moderator@demo'; } $('#app').hidden = false; }
+  else { $('#signin').hidden = false; api = await liveApi(cfg); $('#app').hidden = false; }
+  $('#mode').textContent = api.mode; $('#mode').className = 'pill ' + (api.mode === 'Live' ? 'ok' : 'warn');
+  $('#role').textContent = api.role === 'admin' ? 'Admin' : 'Moderator'; $('#who').textContent = api.email;
+  try { D0 = await api.load(); } catch (e) { $('#view').innerHTML = `<div class="banner">Couldn’t load: ${esc(e.message || e)}</div>`; return; }
+  if (api.role !== 'admin') view = 'moderation';
+  renderNav(); render();
+})();
 </script>
 </body>
 </html>
